@@ -109,7 +109,6 @@ const UI = {
     var oldUpgrades = [
       { type: 'stat', id: 'damage', name: 'Damage', icon: '+', desc: '+1 к урону', nameRu: 'Урон' },
       { type: 'stat', id: 'range', name: 'Range', icon: '<->', desc: '+40 к дальности', nameRu: 'Дальность' },
-      { type: 'stat', id: 'speed', name: 'Move Speed', icon: '->', desc: '+20 к скорости', nameRu: 'Скорость' },
       { type: 'stat', id: 'maxHp', name: 'Max HP', icon: '*', desc: '+5 макс. HP и лечение', nameRu: 'Макс. HP' },
     ];
     pool = pool.concat(oldUpgrades);
@@ -124,7 +123,6 @@ const UI = {
       speed:     'Скорость снарядов +10%',
       duration:  'Длительность +15%',
       amount:    'Количество +1',
-      moveSpeed: 'Скорость движения +5%',
       magnet:    'Магнит +20',
       luck:      'Удача +10%',
       growth:    'Рост +10%',
@@ -232,7 +230,6 @@ const UI = {
     switch (id) {
       case 'damage': WeaponManager.globalDamage += 1; break;
       case 'range': WeaponManager.globalDamage += 0.5; break;
-      case 'speed': Player.moveSpeed += 0.05; break;
       case 'maxHp': Player.maxHp += 5; Player.hp = Player.maxHp; break;
     }
   },
