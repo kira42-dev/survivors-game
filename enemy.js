@@ -29,7 +29,6 @@ const Enemy = {
     const difficulty = Math.floor(this.totalSpawned / 8);
     const count = 3 + difficulty;
     for (let i = 0; i < count; i++) {
-    for (let i = 0; i < count; i++) {
       let x, y;
       const side = Math.floor(Math.random() * 4);
       const cam = Game.camera;

@@ -45,7 +45,7 @@ const Player = {
       else if (dx < 0) this.dir = 1;
       this.animTimer += dt;
       if (this.animTimer > 0.12) {
-        this.animFrame = (this.animFrame + 1) % 4;
+        this.animFrame = (this.animFrame + 1) % 3;
         this.animTimer = 0;
       }
     } else {
