@@ -106,6 +106,7 @@ const Game = {
   generateDecorations: function() {
     this.decorations = [];
     var seed = 12345;
+    var minDist = 80;
     for (var i = 0; i < 300; i++) {
       seed = (seed * 1103515245 + 12345) & 0x7fffffff;
       var x = (seed / 0x7fffffff) * this.mapSize;
@@ -114,7 +115,21 @@ const Game = {
       // Keep decorations away from player start
       var dx = x - 1500;
       var dy = y - 1500;
-      if (dx * dx + dy * dy < 200 * 200) { i--; continue; }
+      if (dx * dx + dy * dy < 250 * 250) { i--; continue; }
+      // Check distance from other decorations
+      var tooClose = false;
+      for (var j = 0; j < this.decorations.length; j++) {
+        var d = this.decorations[j];
+        var cx = d.x + d.def.w / 2;
+        var cy = d.y + d.def.h / 2;
+        var distX = x - cx;
+        var distY = y - cy;
+        if (distX * distX + distY * distY < minDist * minDist) {
+          tooClose = true;
+          break;
+        }
+      }
+      if (tooClose) { i--; continue; }
       // Pick a random decor def
       var def = this.DECOR_DEFS[Math.floor((seed / 0x7fffffff) * this.DECOR_DEFS.length)];
       this.decorations.push({ x: x - def.w / 2, y: y - def.h / 2, def: def });
