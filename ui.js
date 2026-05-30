@@ -52,6 +52,13 @@ const UI = {
     ctx.fillText(`Lv.${Player.level} ${Player.xp}/${Player.xpToNext} XP`, x + w / 2, y + 12);
   },
 
+  _weaponSpriteTag(spriteKey) {
+    if (!spriteKey) return '';
+    var s = Game.sprites[spriteKey];
+    if (!s || s.width === 0) return '';
+    return `<img src="${s.src}" class="upgrade-weapon-img">`;
+  },
+
   showUpgrades() {
     const overlay = document.getElementById('upgradeOverlay');
     if (!overlay) return;
@@ -59,8 +66,9 @@ const UI = {
     overlay.innerHTML = `<div class="upgrade-title">УРОВЕНЬ ${Player.level}</div><div class="upgrade-choices">`;
     for (const c of choices) {
       const descClass = c.type === 'evolution' ? 'upgrade-desc evolve' : 'upgrade-desc';
+      var iconHtml = c._sprite ? this._weaponSpriteTag(c._sprite) : `<div class="upgrade-icon">${c.icon}</div>`;
       overlay.innerHTML += `<div class="upgrade-card" data-id="${c.id}" data-type="${c.type}">
-        <div class="upgrade-icon">${c.icon}</div>
+        ${iconHtml}
         <div class="upgrade-name">${c.name}</div>
         <div class="${descClass}">${c.desc}</div>
       </div>`;
@@ -118,6 +126,7 @@ const UI = {
         name: 'Эволюция: ' + w.nameRu,
         icon: '\u2606',
         desc: 'Улучшается в ' + (evoDef ? evoDef().nameRu : '???'),
+        _sprite: WEAPON_SPRITE_MAP[w.evoId] || WEAPON_SPRITE_MAP[w.id],
       });
     }
 
@@ -131,6 +140,7 @@ const UI = {
         name: w.nameRu + ' Ур.' + w.level,
         icon: '\u2191',
         desc: 'Атака +' + Math.round(10 * w.getStat('power') * Player.power * 0.15),
+        _sprite: WEAPON_SPRITE_MAP[w.id],
       });
     }
 
@@ -141,7 +151,7 @@ const UI = {
           key === 'loop' || key === 'unholyVespers' || key === 'stigraGatti') continue;
       if (!WeaponManager.hasWeapon(key)) {
         var def = WEAPON_FACTORIES[key]();
-        pool.push({ type: 'weaponNew', id: key, name: def.nameRu, icon: '\u2694', desc: 'Новое оружие' });
+        pool.push({ type: 'weaponNew', id: key, name: def.nameRu, icon: '\u2694', desc: 'Новое оружие', _sprite: WEAPON_SPRITE_MAP[key] });
       }
     }
 

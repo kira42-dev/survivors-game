@@ -36,6 +36,27 @@ function damageEnemy(e, dmg) {
   }
 }
 
+var WEAPON_SPRITE_MAP = {
+  magicArrow: 'bow',
+  fireball: 'crystalsword',
+  throwingKnife: 'dagger',
+  axe: 'doubleaxe',
+  lightning: null,
+  holyWater: null,
+  bible: 'longsword',
+  birds: null,
+  whip: 'flail',
+  holyMissile: 'bow',
+  bloodyTear: 'flail',
+  deathSpiral: 'doubleaxe',
+  thousandEdge: 'dagger',
+  hellfire: 'crystalsword',
+  bora: null,
+  loop: null,
+  unholyVespers: null,
+  stigraGatti: null,
+};
+
 function getSpawnPos() {
   var side = Math.floor(Math.random() * 4);
   var cam = Game.camera;
@@ -50,6 +71,8 @@ function getSpawnPos() {
   else { x = cam.x - margin - Math.random() * spread; y = cam.y + Math.random() * h; }
   return { x: x, y: y };
 }
+
+var _currentWeaponId = null;
 
 function createWeapon(config) {
   return {
@@ -77,7 +100,11 @@ function createWeapon(config) {
       return PassiveManager.isMaxed(this.evoSynergy);
     },
 
-    attack: config.attack,
+    attack: function() {
+      _currentWeaponId = this.id;
+      config.attack.call(this);
+      _currentWeaponId = null;
+    },
   };
 }
 
@@ -722,7 +749,10 @@ var WeaponManager = {
     this._renderVfx(ctx);
   },
 
-  addProjectile: function(cfg) { this.projectiles.push(cfg); },
+  addProjectile: function(cfg) {
+    if (_currentWeaponId) cfg._weapon = _currentWeaponId;
+    this.projectiles.push(cfg);
+  },
   addVfx: function(cfg) { this.vfx.push(cfg); },
   addZone: function(cfg) { this.zones.push(cfg); },
 
@@ -921,10 +951,24 @@ var WeaponManager = {
     }
   },
 
+  _renderProjectileSprite: function(ctx, p) {
+    var spriteName = p._weapon ? WEAPON_SPRITE_MAP[p._weapon] : null;
+    var sprite = spriteName ? Game.sprites[spriteName] : null;
+    if (sprite && sprite.width > 0) {
+      var sz = 24;
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(sprite, p.x - sz / 2, p.y - sz / 2, sz, sz);
+      ctx.imageSmoothingEnabled = true;
+      return true;
+    }
+    return false;
+  },
+
   _renderProjectiles: function(ctx) {
     for (var i = 0; i < this.projectiles.length; i++) {
       var p = this.projectiles[i];
       if (p.type === 'orbital') {
+        if (this._renderProjectileSprite(ctx, p)) continue;
         ctx.fillStyle = '#6af';
         ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#8cf';
@@ -932,6 +976,7 @@ var WeaponManager = {
         continue;
       }
       if (p.type === 'homing') {
+        if (this._renderProjectileSprite(ctx, p)) continue;
         ctx.fillStyle = '#f84';
         ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#fa6';
@@ -939,6 +984,7 @@ var WeaponManager = {
         continue;
       }
       if (p.type === 'boomerang') {
+        if (this._renderProjectileSprite(ctx, p)) continue;
         ctx.fillStyle = '#4c4';
         ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#6e6';
@@ -946,6 +992,7 @@ var WeaponManager = {
         continue;
       }
       if (p.type === 'piercing') {
+        if (this._renderProjectileSprite(ctx, p)) continue;
         ctx.fillStyle = '#4cf';
         ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#8ef';
@@ -953,6 +1000,7 @@ var WeaponManager = {
         continue;
       }
       if (p.type === 'explosive') {
+        if (this._renderProjectileSprite(ctx, p)) continue;
         ctx.fillStyle = '#f60';
         ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#f90';
@@ -961,6 +1009,7 @@ var WeaponManager = {
         ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2); ctx.fill();
         continue;
       }
+      if (this._renderProjectileSprite(ctx, p)) continue;
       if (p._trailPoints) {
         for (var t = 0; t < p._trailPoints.length; t++) {
           var alpha = (t / p._trailPoints.length) * 0.5;

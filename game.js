@@ -34,6 +34,13 @@ const Game = {
       plains: 'assets/sprites/tilesets/grass.png',
       player: 'assets/sprites/characters/player.png',
       slime: 'assets/sprites/characters/slime.png',
+      crystalsword: 'assets/sprites/weapons/weapon01crystalsword.png',
+      dagger: 'assets/sprites/weapons/weapon02dagger.png',
+      longsword: 'assets/sprites/weapons/weapon03longsword.png',
+      flail: 'assets/sprites/weapons/weapon04rustyflail.png',
+      doubleaxe: 'assets/sprites/weapons/weapon05doubleaxe.png',
+      bow: 'assets/sprites/weapons/weapon06bow.png',
+      spear: 'assets/sprites/weapons/weapon07spear.png',
     };
     for (const [key, src] of Object.entries(assets)) {
       const img = new Image();
