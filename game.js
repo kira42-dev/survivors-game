@@ -63,6 +63,7 @@ const Game = {
   },
 
   reset() {
+    Player.dead = false;
     Player.hp = Player.maxHp;
     Player.xp = 0;
     Player.level = 1;

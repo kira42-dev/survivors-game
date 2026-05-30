@@ -12,6 +12,7 @@ const Player = {
   animFrame: 0,
   animTimer: 0,
   moving: false,
+  dead: false,
   keys: {},
 
   init() {
@@ -25,6 +26,7 @@ const Player = {
   },
 
   update(dt) {
+    if (this.dead) return;
     let dx = 0, dy = 0;
     if (this.keys['w'] || this.keys['arrowup']) dy = -1;
     if (this.keys['s'] || this.keys['arrowdown']) dy = 1;
@@ -45,12 +47,15 @@ const Player = {
       else if (dx < 0) this.dir = 1;
       this.animTimer += dt;
       if (this.animTimer > 0.12) {
-        this.animFrame = (this.animFrame + 1) % 3;
+        this.animFrame = (this.animFrame + 1) % 5;
         this.animTimer = 0;
       }
     } else {
-      this.animFrame = 0;
-      this.animTimer = 0;
+      this.animTimer += dt;
+      if (this.animTimer > 0.25) {
+        this.animFrame = (this.animFrame + 1) % 5;
+        this.animTimer = 0;
+      }
     }
     Game.camera.x = this.x - Game.width / 2;
     Game.camera.y = this.y - Game.height / 2;
@@ -64,17 +69,29 @@ const Player = {
       return;
     }
     const fw = 48, fh = 48;
-    const row = (this.moving ? 3 : 0) + this.animFrame;
-    const sy = row * fh;
-    const dirCol = { 0: 4, 1: 2, 2: 2, 3: 0 }[this.dir] || 0;
-    const sx = dirCol * fw;
+    let row, flipped = false;
+
+    if (this.dead) {
+      row = 9;
+    } else if (this.moving) {
+      switch (this.dir) {
+        case 0: row = 5; break;
+        case 1: row = 4; flipped = true; break;
+        case 2: row = 4; break;
+        case 3: row = 3; break;
+      }
+    } else {
+      row = 0;
+    }
+
+    const col = this.animFrame;
     ctx.save();
-    if (this.dir === 1) {
+    if (flipped) {
       ctx.translate(this.x, this.y);
       ctx.scale(-1, 1);
-      ctx.drawImage(sprite, sx, sy, fw, fh, -fw / 2, -fh / 2, fw, fh);
+      ctx.drawImage(sprite, col * fw, row * fh, fw, fh, -fw / 2, -fh / 2, fw, fh);
     } else {
-      ctx.drawImage(sprite, sx, sy, fw, fh, this.x - fw / 2, this.y - fh / 2, fw, fh);
+      ctx.drawImage(sprite, col * fw, row * fh, fw, fh, this.x - fw / 2, this.y - fh / 2, fw, fh);
     }
     ctx.restore();
   },
@@ -94,6 +111,7 @@ const Player = {
     this.hp -= amount;
     if (this.hp <= 0) {
       this.hp = 0;
+      this.dead = true;
       Game.state = 'GAME_OVER';
       UI.showGameOver();
     }
