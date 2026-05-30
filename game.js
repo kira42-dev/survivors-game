@@ -1,0 +1,122 @@
+const Game = {
+  canvas: null,
+  ctx: null,
+  width: 0,
+  height: 0,
+  camera: { x: 0, y: 0 },
+  state: 'LOADING',
+  sprites: {},
+  lastTime: 0,
+  accumulator: 0,
+  fixedDt: 1 / 60,
+
+  init() {
+    this.canvas = document.getElementById('gameCanvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  },
+
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.canvas.width = this.width * dpr;
+    this.canvas.height = this.height * dpr;
+    this.canvas.style.width = this.width + 'px';
+    this.canvas.style.height = this.height + 'px';
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  },
+
+  loadAssets(callback) {
+    const assets = {
+      player: 'assets/sprites/characters/player.png',
+      skeleton: 'assets/sprites/characters/skeleton.png',
+      skeleton_swordless: 'assets/sprites/characters/skeleton_swordless.png',
+      slime: 'assets/sprites/characters/slime.png',
+      plains: 'assets/sprites/tilesets/plains.png',
+      objects: 'assets/sprites/tilesets/objects.png',
+    };
+    let loaded = 0;
+    const total = Object.keys(assets).length;
+    for (const [key, src] of Object.entries(assets)) {
+      const img = new Image();
+      img.onload = () => {
+        loaded++;
+        if (loaded >= total) callback();
+      };
+      img.onerror = () => {
+        loaded++;
+        if (loaded >= total) callback();
+      };
+      img.src = src;
+      this.sprites[key] = img;
+    }
+  },
+
+  start() {
+    this.state = 'PLAYING';
+    this.lastTime = performance.now();
+    this.loop(this.lastTime);
+  },
+
+  loop(time) {
+    const dt = Math.min((time - this.lastTime) / 1000, 0.05);
+    this.lastTime = time;
+    this.accumulator += dt;
+    while (this.accumulator >= this.fixedDt) {
+      this.update(this.fixedDt);
+      this.accumulator -= this.fixedDt;
+    }
+    this.render();
+    requestAnimationFrame((t) => this.loop(t));
+  },
+
+  update(dt) {
+    if (this.state !== 'PLAYING') return;
+    Player.update(dt);
+    Enemy.updateAll(dt);
+    Weapon.update(dt);
+  },
+
+  render() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.width, this.height);
+    if (this.state === 'LOADING') {
+      ctx.fillStyle = '#fff';
+      ctx.font = '24px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('Loading...', this.width / 2, this.height / 2);
+      return;
+    }
+    ctx.save();
+    ctx.translate(Math.round(-this.camera.x), Math.round(-this.camera.y));
+    this.renderMap(ctx);
+    Enemy.renderAll(ctx);
+    Player.render(ctx);
+    Weapon.renderAll(ctx);
+    ctx.restore();
+    UI.render(ctx);
+  },
+
+  renderMap(ctx) {
+    const plains = this.sprites.plains;
+    if (!plains) return;
+    const tileSize = 16;
+    const tilesPerRow = Math.floor(plains.width / tileSize);
+    const tilesPerCol = Math.floor(plains.height / tileSize);
+    const mapW = 2000;
+    const mapH = 2000;
+    for (let y = 0; y < mapH; y += tileSize) {
+      for (let x = 0; x < mapW; x += tileSize) {
+        const tx = Math.floor((x / tileSize) % tilesPerRow);
+        const ty = Math.floor((y / tileSize) % tilesPerCol);
+        ctx.drawImage(
+          plains,
+          tx * tileSize, ty * tileSize, tileSize, tileSize,
+          x, y, tileSize, tileSize
+        );
+      }
+    }
+  },
+};
