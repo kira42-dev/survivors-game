@@ -7,6 +7,9 @@ const Game = {
   mapSize: 3000,
   state: 'LOADING',
   sprites: {},
+  lastTime: 0,
+  accumulator: 0,
+  fixedDt: 1 / 60,
 
   init() {
     this.canvas = document.getElementById('gameCanvas');
@@ -29,6 +32,7 @@ const Game = {
   loadAssets(callback) {
     const assets = {
       plains: 'assets/sprites/tilesets/plains.png',
+      player: 'assets/sprites/characters/player.png',
     };
     let loaded = 0;
     const total = Object.keys(assets).length;
@@ -48,18 +52,25 @@ const Game = {
   },
 
   start() {
-    this.state = 'PLAYING';
-    this.loop();
+    this.lastTime = performance.now();
+    this.loop(this.lastTime);
   },
 
-  loop() {
-    this.update();
+  loop(time) {
+    const dt = Math.min((time - this.lastTime) / 1000, 0.05);
+    this.lastTime = time;
+    this.accumulator += dt;
+    while (this.accumulator >= this.fixedDt) {
+      this.update(this.fixedDt);
+      this.accumulator -= this.fixedDt;
+    }
     this.render();
-    requestAnimationFrame(() => this.loop());
+    requestAnimationFrame((t) => this.loop(t));
   },
 
-  update() {
+  update(dt) {
     if (this.state !== 'PLAYING') return;
+    Player.update(dt);
   },
 
   render() {
@@ -75,6 +86,7 @@ const Game = {
     ctx.save();
     ctx.translate(-this.camera.x, -this.camera.y);
     this.renderMap(ctx);
+    Player.render(ctx);
     ctx.restore();
   },
 
