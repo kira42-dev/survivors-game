@@ -9,6 +9,17 @@ const UI = {
     if (Game.state === 'LOADING') return;
     this.drawHpBar(ctx);
     this.drawXpBar(ctx);
+    this.drawStats(ctx);
+  },
+
+  drawStats(ctx) {
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.font = '13px monospace';
+    ctx.textAlign = 'left';
+    const mins = Math.floor(this.gameTime / 60);
+    const secs = Math.floor(this.gameTime % 60);
+    const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    ctx.fillText(`${timeStr}  Kills: ${Player.kills}`, 16, 52);
   },
 
   drawHpBar(ctx) {

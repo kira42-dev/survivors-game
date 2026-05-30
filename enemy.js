@@ -5,18 +5,20 @@ const Enemy = {
   spawnInterval: 3,
   totalSpawned: 0,
 
-  create(x, y, type) {
-    const stats = type === 'slime'
+  create(x, y, type, difficulty) {
+    const base = type === 'slime'
       ? { hp: 2, speed: 55, width: 32, height: 32, xp: 1 }
       : { hp: 4, speed: 65, width: 48, height: 48, xp: 2 };
+    const hpMul = 1 + difficulty * 0.15;
+    const spdMul = 1 + difficulty * 0.05;
     return {
       x, y, type,
-      hp: stats.hp,
-      maxHp: stats.hp,
-      speed: stats.speed + Math.random() * 10,
-      xp: stats.xp,
-      width: stats.width,
-      height: stats.height,
+      hp: Math.ceil(base.hp * hpMul),
+      maxHp: Math.ceil(base.hp * hpMul),
+      speed: base.speed * spdMul + Math.random() * 10,
+      xp: base.xp + Math.floor(difficulty / 3),
+      width: base.width,
+      height: base.height,
       animFrame: 0,
       animTimer: 0,
       alive: true,
@@ -24,7 +26,9 @@ const Enemy = {
   },
 
   spawnWave() {
-    const count = 3 + Math.floor(this.totalSpawned / 10);
+    const difficulty = Math.floor(this.totalSpawned / 8);
+    const count = 3 + difficulty;
+    for (let i = 0; i < count; i++) {
     for (let i = 0; i < count; i++) {
       let x, y;
       const side = Math.floor(Math.random() * 4);
@@ -47,9 +51,10 @@ const Enemy = {
         y = cam.y + Math.random() * h;
       }
       const type = Math.random() < 0.35 ? 'slime' : 'skeleton';
-      this.list.push(this.create(x, y, type));
+      this.list.push(this.create(x, y, type, difficulty));
     }
     this.totalSpawned += count;
+    this.spawnInterval = Math.max(0.8, 3 - difficulty * 0.15);
   },
 
   spawnXpGem(x, y, value) {
