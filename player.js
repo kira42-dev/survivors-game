@@ -92,6 +92,15 @@ const Player = {
     ctx.restore();
   },
 
+  takeDamage(amount) {
+    this.hp -= amount;
+    if (this.hp <= 0) {
+      this.hp = 0;
+      Game.state = 'GAME_OVER';
+      UI.showGameOver();
+    }
+  },
+
   addXp(amount) {
     this.xp += amount;
     if (this.xp >= this.xpToNext) {
