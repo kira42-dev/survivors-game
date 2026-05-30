@@ -98,7 +98,7 @@ const UI = {
       case 'range': s.range += 80; break;
       case 'projectiles': s.projectileCount += 1; break;
       case 'speed': s.speed += 20; break;
-      case 'maxHp': Player.maxHp += 5; Player.hp = Player.maxHp; break;
+      case 'maxHp': s.maxHp += 5; Player.maxHp = s.maxHp; Player.hp = s.maxHp; break;
     }
   },
 
