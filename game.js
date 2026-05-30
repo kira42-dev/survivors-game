@@ -74,6 +74,7 @@ const Game = {
     if (this.state !== 'PLAYING') return;
     Player.update(dt);
     Enemy.updateAll(dt);
+    Weapon.update(dt);
   },
 
   render() {
@@ -90,6 +91,7 @@ const Game = {
     ctx.translate(-this.camera.x, -this.camera.y);
     this.renderMap(ctx);
     Enemy.renderAll(ctx);
+    Weapon.renderAll(ctx);
     Player.render(ctx);
     ctx.restore();
   },
