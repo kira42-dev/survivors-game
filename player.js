@@ -10,7 +10,7 @@ const Player = {
   kills: 0,
   dir: 0,
   power: 1,
-  cooldown: 1,
+  cooldown: 0.667,
   area: 1,
   speed: 1,
   duration: 1,
