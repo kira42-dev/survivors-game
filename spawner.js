@@ -41,25 +41,29 @@ const Spawner = {
     const groupSize = this.groupBase + Math.floor(this.elapsedTime / this.groupInterval);
     for (let i = 0; i < groupSize; i++) {
       let x, y;
-      const side = Math.floor(Math.random() * 4);
-      const cam = Game.camera;
-      const w = Game.width;
-      const h = Game.height;
-      const margin = Math.max(w, h) * 0.6;
-      const spread = Math.max(w, h) * 0.4;
-      if (side === 0) {
-        x = cam.x + Math.random() * w;
-        y = cam.y - margin - Math.random() * spread;
-      } else if (side === 1) {
-        x = cam.x + w + margin + Math.random() * spread;
-        y = cam.y + Math.random() * h;
-      } else if (side === 2) {
-        x = cam.x + Math.random() * w;
-        y = cam.y + h + margin + Math.random() * spread;
-      } else {
-        x = cam.x - margin - Math.random() * spread;
-        y = cam.y + Math.random() * h;
-      }
+      var attempts = 0;
+      do {
+        const side = Math.floor(Math.random() * 4);
+        const cam = Game.camera;
+        const w = Game.width;
+        const h = Game.height;
+        const margin = Math.max(w, h) * 0.6;
+        const spread = Math.max(w, h) * 0.4;
+        if (side === 0) {
+          x = cam.x + Math.random() * w;
+          y = cam.y - margin - Math.random() * spread;
+        } else if (side === 1) {
+          x = cam.x + w + margin + Math.random() * spread;
+          y = cam.y + Math.random() * h;
+        } else if (side === 2) {
+          x = cam.x + Math.random() * w;
+          y = cam.y + h + margin + Math.random() * spread;
+        } else {
+          x = cam.x - margin - Math.random() * spread;
+          y = cam.y + Math.random() * h;
+        }
+        attempts++;
+      } while (attempts < 10 && (x - Player.x) * (x - Player.x) + (y - Player.y) * (y - Player.y) < 300 * 300);
       const difficulty = Math.floor(this.elapsedTime / 8);
       var type = Math.random() < 0.5 ? 'slime' : 'bat';
       Enemy.list.push(Enemy.create(x, y, difficulty, type));
