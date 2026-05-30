@@ -77,8 +77,7 @@ const Game = {
     Weapon.range = 400;
     Enemy.list = [];
     Enemy.xpGems = [];
-    Enemy.spawnTimer = 0;
-    Enemy.totalSpawned = 0;
+    Spawner.reset();
     Weapon.projectiles = [];
     Weapon.fireTimer = 0;
     UI.reset();
@@ -88,6 +87,7 @@ const Game = {
   update(dt) {
     if (this.state !== 'PLAYING') return;
     Player.update(dt);
+    Spawner.update(dt);
     Enemy.updateAll(dt);
     Weapon.update(dt);
     UI.gameTime += dt;

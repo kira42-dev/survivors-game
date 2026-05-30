@@ -1,9 +1,6 @@
 const Enemy = {
   list: [],
   xpGems: [],
-  spawnTimer: 0,
-  spawnInterval: 3,
-  totalSpawned: 0,
 
   create(x, y, difficulty) {
     const hpMul = 1 + difficulty * 0.15;
@@ -22,46 +19,11 @@ const Enemy = {
     };
   },
 
-  spawnWave() {
-    const difficulty = Math.floor(this.totalSpawned / 8);
-    const count = 3 + difficulty;
-    for (let i = 0; i < count; i++) {
-      let x, y;
-      const side = Math.floor(Math.random() * 4);
-      const cam = Game.camera;
-      const w = Game.width;
-      const h = Game.height;
-      const margin = Math.max(w, h) * 0.6;
-      const spread = Math.max(w, h) * 0.4;
-      if (side === 0) {
-        x = cam.x + Math.random() * w;
-        y = cam.y - margin - Math.random() * spread;
-      } else if (side === 1) {
-        x = cam.x + w + margin + Math.random() * spread;
-        y = cam.y + Math.random() * h;
-      } else if (side === 2) {
-        x = cam.x + Math.random() * w;
-        y = cam.y + h + margin + Math.random() * spread;
-      } else {
-        x = cam.x - margin - Math.random() * spread;
-        y = cam.y + Math.random() * h;
-      }
-      this.list.push(this.create(x, y, difficulty));
-    }
-    this.totalSpawned += count;
-    this.spawnInterval = Math.max(0.8, 3 - difficulty * 0.15);
-  },
-
   spawnXpGem(x, y, value) {
     this.xpGems.push({ x, y, value, size: 6, bob: 0 });
   },
 
   updateAll(dt) {
-    this.spawnTimer += dt;
-    if (this.spawnTimer >= this.spawnInterval) {
-      this.spawnTimer = 0;
-      this.spawnWave();
-    }
     for (let i = this.xpGems.length - 1; i >= 0; i--) {
       const g = this.xpGems[i];
       g.bob += dt * 3;
