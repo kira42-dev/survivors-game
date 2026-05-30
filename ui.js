@@ -7,7 +7,6 @@ const UI = {
 
   render(ctx) {
     if (Game.state === 'LOADING') return;
-    this.gameTime += Game.fixedDt;
     this.drawHpBar(ctx);
     this.drawXpBar(ctx);
     this.drawStats(ctx);

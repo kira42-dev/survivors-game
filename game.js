@@ -103,6 +103,7 @@ const Game = {
     Player.update(dt);
     Enemy.updateAll(dt);
     Weapon.update(dt);
+    UI.gameTime += dt;
     for (const e of Enemy.list) {
       if (!e.alive) continue;
       const dx = Player.x - e.x;
