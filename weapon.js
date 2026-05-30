@@ -86,6 +86,8 @@ function createWeapon(config) {
     bonuses: config.bonuses || [],
     evoSynergy: config.evoSynergy || null,
     evoId: config.evoId || null,
+    hitDelay: config.hitDelay || 0,
+    intervalDependsOnDuration: config.intervalDependsOnDuration || false,
 
     getStat: function(name) {
       var val = this.base[name] || 0;
@@ -335,14 +337,20 @@ WEAPON_FACTORIES.bible = function() {
     id: 'bible', name: 'King Bible', nameRu: 'Королевская библия',
     base: { power: 1, interval: 3000, area: 1, speed: 1, amount: 1, duration: 3000 },
     bonuses: [
-      { amount: 1 }, { speed: 0.3, area: 0.25 },
-      { duration: 500, power: 1 }, { amount: 1 },
-      { speed: 0.3, area: 0.25 }, { duration: 500, power: 1 }, { amount: 1 },
+      { amount: 1 },
+      { speed: 0.3, area: 0.25 },
+      { duration: 500, power: 1 },
+      { amount: 1 },
+      { speed: 0.3, area: 0.25 },
+      { duration: 500, power: 1 },
+      { amount: 1 },
     ],
+    hitDelay: 1.7,
     evoSynergy: 'DURATION', evoId: 'unholyVespers',
     attack: function() {
       var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
       var amt = this.getStat('amount') + Player.amount;
+      var lifetime = (this.getStat('duration') / 1000) * Player.duration;
       for (var oi = 0; oi < amt; oi++) {
         var r = 65 * Player.area + Math.random() * 10;
         var startAngle = Math.random() * Math.PI * 2;
@@ -353,6 +361,9 @@ WEAPON_FACTORIES.bible = function() {
           radius: r + oi * 8,
           speed: 4 * Player.speed,
           damage: dmg,
+          lifetime: Math.max(0.5, lifetime),
+          timer: 0,
+          hitDelay: this.hitDelay,
           hitTimer: 0,
         });
       }
@@ -618,9 +629,12 @@ WEAPON_FACTORIES.unholyVespers = function() {
     id: 'unholyVespers', name: 'Unholy Vespers', nameRu: 'Нечестивая вечерня',
     base: { power: 3, interval: 3000, area: 1.75, speed: 1.5, amount: 4, duration: 3000 },
     bonuses: [],
+    hitDelay: 1.7,
+    intervalDependsOnDuration: true,
     attack: function() {
       var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
       var amt = this.getStat('amount') + Player.amount;
+      var lifetime = (this.getStat('duration') / 1000) * Player.duration;
       for (var oi = 0; oi < amt; oi++) {
         var r = 80 * Player.area + Math.random() * 10;
         var startAngle = Math.random() * Math.PI * 2;
@@ -631,6 +645,9 @@ WEAPON_FACTORIES.unholyVespers = function() {
           radius: r + oi * 10,
           speed: 5 * Player.speed,
           damage: dmg,
+          lifetime: Math.max(0.5, lifetime),
+          timer: 0,
+          hitDelay: this.hitDelay,
           hitTimer: 0,
         });
       }
@@ -732,7 +749,12 @@ var WeaponManager = {
     for (var wi = 0; wi < this.weapons.length; wi++) {
       var w = this.weapons[wi];
       w.timer += dt;
-      var cd = (w.getStat('interval') / 1000) * Player.cooldown;
+      var cd;
+      if (w.intervalDependsOnDuration) {
+        cd = (w.getStat('duration') / 1000) * Player.duration;
+      } else {
+        cd = (w.getStat('interval') / 1000) * Player.cooldown;
+      }
       if (w.timer >= cd) {
         w.timer -= cd;
         w.attack();
@@ -762,9 +784,12 @@ var WeaponManager = {
       var p = list[i];
 
       if (p.type === 'orbital') {
+        p.timer += dt;
+        if (p.lifetime && p.timer >= p.lifetime) { list.splice(i, 1); continue; }
         p.angle += p.speed * dt;
         p.x = Player.x + Math.cos(p.angle) * p.radius;
         p.y = Player.y + Math.sin(p.angle) * p.radius;
+        if (p.timer < p.hitDelay) continue;
         p.hitTimer -= dt;
         if (p.hitTimer <= 0) {
           for (var ei = 0; ei < Enemy.list.length; ei++) {

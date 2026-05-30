@@ -195,8 +195,6 @@ const UI = {
       for (var i = 0; i < weapons.length; i++) {
         if (weapons[i].id === id) {
           weapons[i].level++;
-          // Clear orbitals to prevent stacking on level-up
-          WeaponManager.projectiles = WeaponManager.projectiles.filter(function(p) { return p.type !== 'orbital'; });
           break;
         }
       }
