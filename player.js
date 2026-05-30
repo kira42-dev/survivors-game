@@ -1,7 +1,7 @@
 const Player = {
   x: 1500,
   y: 1500,
-  speed: 200,
+  moveSpeed: 1,
   maxHp: 10,
   hp: 10,
   xp: 0,
@@ -9,6 +9,17 @@ const Player = {
   level: 1,
   kills: 0,
   dir: 0,
+  power: 1,
+  cooldown: 1,
+  area: 1,
+  speed: 1,
+  duration: 1,
+  amount: 0,
+  luck: 1,
+  magnet: 0,
+  growth: 1,
+  armor: 0,
+  regen: 0,
   animFrame: 0,
   animTimer: 0,
   moving: false,
@@ -37,8 +48,8 @@ const Player = {
       const len = Math.sqrt(dx * dx + dy * dy);
       dx /= len;
       dy /= len;
-      this.x += dx * this.speed * dt;
-      this.y += dy * this.speed * dt;
+      this.x += dx * 200 * this.moveSpeed * dt;
+      this.y += dy * 200 * this.moveSpeed * dt;
       this.x = Math.max(24, Math.min(Game.mapSize - 24, this.x));
       this.y = Math.max(24, Math.min(Game.mapSize - 24, this.y));
       if (dy < 0) this.dir = 0;

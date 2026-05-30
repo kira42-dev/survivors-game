@@ -1,8 +1,10 @@
 const UI = {
   gameTime: 0,
+  statsCache: null,
 
   reset() {
     this.gameTime = 0;
+    this.statsCache = null;
   },
 
   render(ctx) {
@@ -54,19 +56,20 @@ const UI = {
     const overlay = document.getElementById('upgradeOverlay');
     if (!overlay) return;
     const choices = this.getRandomUpgrades(3);
-    overlay.innerHTML = `<div class="upgrade-title">LEVEL ${Player.level}</div><div class="upgrade-choices">`;
+    overlay.innerHTML = `<div class="upgrade-title">УРОВЕНЬ ${Player.level}</div><div class="upgrade-choices">`;
     for (const c of choices) {
-      overlay.innerHTML += `<div class="upgrade-card" data-id="${c.id}">
+      const descClass = c.type === 'evolution' ? 'upgrade-desc evolve' : 'upgrade-desc';
+      overlay.innerHTML += `<div class="upgrade-card" data-id="${c.id}" data-type="${c.type}">
         <div class="upgrade-icon">${c.icon}</div>
         <div class="upgrade-name">${c.name}</div>
-        <div class="upgrade-desc">${c.desc}</div>
+        <div class="${descClass}">${c.desc}</div>
       </div>`;
     }
     overlay.innerHTML += '</div>';
     overlay.style.display = 'flex';
     overlay.querySelectorAll('.upgrade-card').forEach((card) => {
       card.addEventListener('click', () => {
-        this.applyUpgrade(card.dataset.id);
+        this.applyUpgrade(card.dataset.id, card.dataset.type);
         overlay.style.display = 'none';
         Game.state = 'PLAYING';
       });
@@ -74,34 +77,134 @@ const UI = {
   },
 
   getRandomUpgrades(count) {
-    var all = [
-      { id: 'damage', name: 'Damage', icon: '+', desc: '+1 attack damage' },
-      { id: 'attackSpeed', name: 'Attack Speed', icon: '>>', desc: '15% faster cooldown' },
-      { id: 'range', name: 'Range', icon: '<->', desc: '+40 range' },
-      { id: 'speed', name: 'Move Speed', icon: '->', desc: '+20 move speed' },
-      { id: 'maxHp', name: 'Max HP', icon: '*', desc: '+5 max HP & heal' },
+    var pool = [];
+    var oldUpgrades = [
+      { type: 'stat', id: 'damage', name: 'Damage', icon: '+', desc: '+1 к урону', nameRu: 'Урон' },
+      { type: 'stat', id: 'range', name: 'Range', icon: '<->', desc: '+40 к дальности', nameRu: 'Дальность' },
+      { type: 'stat', id: 'speed', name: 'Move Speed', icon: '->', desc: '+20 к скорости', nameRu: 'Скорость' },
+      { type: 'stat', id: 'maxHp', name: 'Max HP', icon: '*', desc: '+5 макс. HP и лечение', nameRu: 'Макс. HP' },
     ];
+    pool = pool.concat(oldUpgrades);
+
+    var PASSIVE_DESC_RU = {
+      power:     'Урон +10%',
+      armor:     'Броня +1',
+      maxHpMult: 'Макс. HP +10%',
+      regen:     'Регенерация +0.1',
+      cooldown:  'Перезарядка -2.5%',
+      area:      'Область +5%',
+      speed:     'Скорость снарядов +10%',
+      duration:  'Длительность +15%',
+      amount:    'Количество +1',
+      moveSpeed: 'Скорость движения +5%',
+      magnet:    'Магнит +20',
+      luck:      'Удача +10%',
+      growth:    'Рост +10%',
+    };
+
+    function passDescRu(pdef) {
+      var keys = Object.keys(pdef.bonuses);
+      return keys.map(function(k) { return PASSIVE_DESC_RU[k] || ''; }).filter(Boolean).join(', ');
+    }
+
+    // Add evolutions as first priority
+    var evolvable = WeaponManager.getEvolvableWeapons();
+    for (var ei = 0; ei < evolvable.length; ei++) {
+      var w = evolvable[ei];
+      var evoDef = WEAPON_FACTORIES[w.evoId];
+      pool.push({
+        type: 'evolution',
+        id: w.id,
+        name: 'Эволюция: ' + w.nameRu,
+        icon: '\u2606',
+        desc: 'Улучшается в ' + (evoDef ? evoDef().nameRu : '???'),
+      });
+    }
+
+    // Add owned weapons that can level up
+    var lvWeapons = WeaponManager.getLevelableWeapons();
+    for (var wi = 0; wi < lvWeapons.length; wi++) {
+      var w = lvWeapons[wi];
+      pool.push({
+        type: 'weaponLevel',
+        id: w.id,
+        name: w.nameRu + ' Ур.' + w.level,
+        icon: '\u2191',
+        desc: 'Атака +' + Math.round(10 * w.getStat('power') * Player.power * 0.15),
+      });
+    }
+
+    // Add unowned non-evolved weapons
     for (var key in WEAPON_FACTORIES) {
-      if (WEAPON_FACTORIES.hasOwnProperty(key) && key !== 'magicArrow' && !WeaponManager.hasWeapon(key)) {
+      if (key === 'holyMissile' || key === 'bloodyTear' || key === 'deathSpiral' ||
+          key === 'thousandEdge' || key === 'hellfire' || key === 'bora' ||
+          key === 'loop' || key === 'unholyVespers' || key === 'stigraGatti') continue;
+      if (!WeaponManager.hasWeapon(key)) {
         var def = WEAPON_FACTORIES[key]();
-        all.push({ id: 'weapon_' + key, name: def.name, icon: def.icon, desc: 'New weapon!' });
+        pool.push({ type: 'weaponNew', id: key, name: def.nameRu, icon: '\u2694', desc: 'Новое оружие' });
       }
     }
-    var shuffled = all.slice().sort(function() { return Math.random() - 0.5; });
-    return shuffled.slice(0, count);
+
+    // Add passive items
+    for (var pid in PASSIVE_DEFS) {
+      var pdef = PASSIVE_DEFS[pid];
+      if (!PassiveManager.has(pid)) {
+        pool.push({ type: 'passive', id: pid, name: pdef.nameRu, icon: '\u25C8', desc: passDescRu(pdef) });
+      } else if (!PassiveManager.isMaxed(pid)) {
+        var level = PassiveManager.getLevel(pid);
+        pool.push({ type: 'passive', id: pid, name: pdef.nameRu + ' Ур.' + (level + 1), icon: '\u25C8', desc: passDescRu(pdef) });
+      }
+    }
+
+    var shuffled = pool.slice().sort(function() { return Math.random() - 0.5; });
+    var result = [];
+    var hasEvo = false;
+    for (var si = 0; si < shuffled.length && result.length < count; si++) {
+      if (shuffled[si].type === 'evolution') {
+        if (!hasEvo) { result.push(shuffled[si]); hasEvo = true; }
+        continue;
+      }
+      result.push(shuffled[si]);
+    }
+    return result;
   },
 
-  applyUpgrade(id) {
-    if (id.indexOf('weapon_') === 0) {
-      var weaponId = id.substring(7);
-      WeaponManager.addWeapon(weaponId);
+  applyUpgrade(id, type) {
+    if (type === 'evolution') {
+      var weapons = WeaponManager.weapons;
+      for (var i = 0; i < weapons.length; i++) {
+        if (weapons[i].id === id && weapons[i].canEvolve()) {
+          WeaponManager.evolveWeapon(weapons[i]);
+          break;
+        }
+      }
       return;
     }
+    if (type === 'weaponLevel') {
+      var weapons = WeaponManager.weapons;
+      for (var i = 0; i < weapons.length; i++) {
+        if (weapons[i].id === id) {
+          weapons[i].level++;
+          // Clear orbitals to prevent stacking on level-up
+          WeaponManager.projectiles = WeaponManager.projectiles.filter(function(p) { return p.type !== 'orbital'; });
+          break;
+        }
+      }
+      return;
+    }
+    if (type === 'weaponNew') {
+      WeaponManager.addWeapon(id);
+      return;
+    }
+    if (type === 'passive') {
+      PassiveManager.add(id);
+      return;
+    }
+    // Old stat upgrades
     switch (id) {
       case 'damage': WeaponManager.globalDamage += 1; break;
-      case 'attackSpeed': WeaponManager.globalCooldownMult = Math.max(0.2, WeaponManager.globalCooldownMult * 0.85); break;
-      case 'range': WeaponManager.globalRange += 40; break;
-      case 'speed': Player.speed += 20; break;
+      case 'range': WeaponManager.globalDamage += 0.5; break;
+      case 'speed': Player.moveSpeed += 0.05; break;
       case 'maxHp': Player.maxHp += 5; Player.hp = Player.maxHp; break;
     }
   },

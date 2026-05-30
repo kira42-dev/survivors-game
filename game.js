@@ -64,19 +64,31 @@ const Game = {
 
   reset() {
     Player.dead = false;
-    Player.hp = Player.maxHp;
     Player.xp = 0;
     Player.level = 1;
     Player.kills = 0;
     Player.xpToNext = 10;
-    Player.speed = 200;
+    Player.moveSpeed = 1;
+    Player.power = 1;
+    Player.cooldown = 1;
+    Player.area = 1;
+    Player.speed = 1;
+    Player.duration = 1;
+    Player.amount = 0;
+    Player.luck = 1;
+    Player.magnet = 0;
+    Player.growth = 1;
+    Player.armor = 0;
+    Player.regen = 0;
     Player.maxHp = 10;
+    Player.hp = Player.maxHp;
     Player.x = 1500;
     Player.y = 1500;
     Enemy.list = [];
     Enemy.xpGems = [];
     Spawner.reset();
     WeaponManager.reset();
+    PassiveManager.reset();
     UI.reset();
     this.state = 'PLAYING';
   },
@@ -88,13 +100,30 @@ const Game = {
     Enemy.updateAll(dt);
     WeaponManager.update(dt);
     UI.gameTime += dt;
+
+    // Regen tick every 5s
+    UI._regenTimer = (UI._regenTimer || 0) + dt;
+    if (UI._regenTimer >= 5) {
+      UI._regenTimer -= 5;
+      var regenAmt = Player.regen;
+      if (regenAmt > 0 && Player.hp < Player.maxHp) {
+        Player.hp = Math.min(Player.maxHp, Player.hp + Math.max(1, Math.ceil(regenAmt)));
+      }
+    }
+
+    // Enemy contact damage with armor reduction
     for (const e of Enemy.list) {
       if (!e.alive) continue;
       const dx = Player.x - e.x;
       const dy = Player.y - e.y;
       const threshold = 16;
       if (dx * dx + dy * dy < threshold * threshold) {
-        Player.takeDamage(1);
+        var dmg = 1;
+        // Armor gives chance to block
+        if (Player.armor > 0 && Math.random() < Player.armor * 0.15) {
+          dmg = 0;
+        }
+        if (dmg > 0) Player.takeDamage(dmg);
         e.alive = false;
       }
     }
