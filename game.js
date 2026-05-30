@@ -5,6 +5,7 @@ const Game = {
   height: 0,
   camera: { x: 0, y: 0 },
   mapSize: 3000,
+  SCALE: 1.4,
   state: 'PLAYING',
   sprites: {},
   lastTime: 0,
@@ -44,8 +45,8 @@ const Game = {
   },
 
   start() {
-    this.camera.x = Player.x - this.width / 2;
-    this.camera.y = Player.y - this.height / 2;
+    this.camera.x = Player.x - this.width / 2 / this.SCALE;
+    this.camera.y = Player.y - this.height / 2 / this.SCALE;
     this.lastTime = performance.now();
     this.loop(this.lastTime);
   },
@@ -110,6 +111,7 @@ const Game = {
     ctx.fillRect(0, 0, this.width, this.height);
     ctx.save();
     ctx.translate(-this.camera.x, -this.camera.y);
+    ctx.scale(this.SCALE, this.SCALE);
     this.renderMap(ctx);
     Enemy.renderAll(ctx);
     Weapon.renderAll(ctx);
@@ -125,8 +127,8 @@ const Game = {
     const ts = 16;
     const sx = Math.max(0, Math.floor(this.camera.x / ts) * ts);
     const sy = Math.max(0, Math.floor(this.camera.y / ts) * ts);
-    const ex = Math.min(this.mapSize, this.camera.x + this.width + ts);
-    const ey = Math.min(this.mapSize, this.camera.y + this.height + ts);
+    const ex = Math.min(this.mapSize, this.camera.x + this.width / this.SCALE + ts);
+    const ey = Math.min(this.mapSize, this.camera.y + this.height / this.SCALE + ts);
     for (let y = sy; y < ey; y += ts)
       for (let x = sx; x < ex; x += ts)
         ctx.drawImage(grass, 0, 0, ts, ts, x, y, ts, ts);

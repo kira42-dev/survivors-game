@@ -34,20 +34,22 @@ const Enemy = {
       const cam = Game.camera;
       const w = Game.width;
       const h = Game.height;
-      const margin = Math.max(w, h) * 0.6;
-      const spread = Math.max(w, h) * 0.4;
+      const S = Game.SCALE;
+      const vw = w / S, vh = h / S;
+      const margin = Math.max(w, h) / S * 0.6;
+      const spread = Math.max(w, h) / S * 0.4;
       if (side === 0) {
-        x = cam.x + Math.random() * w;
+        x = cam.x + Math.random() * vw;
         y = cam.y - margin - Math.random() * spread;
       } else if (side === 1) {
-        x = cam.x + w + margin + Math.random() * spread;
-        y = cam.y + Math.random() * h;
+        x = cam.x + vw + margin + Math.random() * spread;
+        y = cam.y + Math.random() * vh;
       } else if (side === 2) {
-        x = cam.x + Math.random() * w;
-        y = cam.y + h + margin + Math.random() * spread;
+        x = cam.x + Math.random() * vw;
+        y = cam.y + vh + margin + Math.random() * spread;
       } else {
         x = cam.x - margin - Math.random() * spread;
-        y = cam.y + Math.random() * h;
+        y = cam.y + Math.random() * vh;
       }
       const type = Math.random() < 0.35 ? 'slime' : 'skeleton';
       this.list.push(this.create(x, y, type, difficulty));
