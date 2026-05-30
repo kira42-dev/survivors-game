@@ -39,6 +39,50 @@ const UI = {
     ctx.fillText(`Lv.${Player.level} ${Player.xp}/${Player.xpToNext} XP`, x + w / 2, y + 12);
   },
 
-  showUpgrades() {},
+  showUpgrades() {
+    const overlay = document.getElementById('upgradeOverlay');
+    if (!overlay) return;
+    const choices = this.getRandomUpgrades(3);
+    overlay.innerHTML = `<div class="upgrade-title">LEVEL ${Player.level}</div><div class="upgrade-choices">`;
+    for (const c of choices) {
+      overlay.innerHTML += `<div class="upgrade-card" data-id="${c.id}">
+        <div class="upgrade-icon">${c.icon}</div>
+        <div class="upgrade-name">${c.name}</div>
+        <div class="upgrade-desc">${c.desc}</div>
+      </div>`;
+    }
+    overlay.innerHTML += '</div>';
+    overlay.style.display = 'flex';
+    overlay.querySelectorAll('.upgrade-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        this.applyUpgrade(card.dataset.id);
+        overlay.style.display = 'none';
+        Game.state = 'PLAYING';
+      });
+    });
+  },
+
+  getRandomUpgrades(count) {
+    const all = [
+      { id: 'damage', name: 'Damage', icon: '+', desc: '+1 attack damage' },
+      { id: 'attackSpeed', name: 'Attack Speed', icon: '>>', desc: 'Faster projectiles' },
+      { id: 'range', name: 'Range', icon: '<->', desc: '+80 range' },
+      { id: 'speed', name: 'Move Speed', icon: '->', desc: '+20 move speed' },
+      { id: 'maxHp', name: 'Max HP', icon: '*', desc: '+5 max HP & heal' },
+    ];
+    const shuffled = [...all].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  },
+
+  applyUpgrade(id) {
+    switch (id) {
+      case 'damage': Weapon.damage += 1; break;
+      case 'attackSpeed': Weapon.fireInterval = Math.max(0.2, Weapon.fireInterval - 0.15); break;
+      case 'range': Weapon.range += 80; break;
+      case 'speed': Player.speed += 20; break;
+      case 'maxHp': Player.maxHp += 5; Player.hp = Player.maxHp; break;
+    }
+  },
+
   showGameOver() {},
 };
