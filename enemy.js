@@ -21,7 +21,7 @@ const Enemy = {
   },
 
   spawnXpGem(x, y, value) {
-    this.xpGems.push({ x, y, value, size: 6, bob: 0 });
+    this.xpGems.push({ x: Game.wrap(x), y: Game.wrap(y), value, size: 6, bob: 0 });
   },
 
   updateAll(dt) {
@@ -47,6 +47,8 @@ const Enemy = {
       if (dist > 0) {
         e.x += (dx / dist) * e.speed * dt;
         e.y += (dy / dist) * e.speed * dt;
+        e.x = Game.wrap(e.x);
+        e.y = Game.wrap(e.y);
         if (Math.abs(dy) > Math.abs(dx)) {
           e.dir = dy < 0 ? 0 : 3;
         } else {

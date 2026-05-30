@@ -323,11 +323,11 @@ WEAPON_FACTORIES.holyWater = function() {
       var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
       var zoneRadius = 50 * Player.area;
       var lifetime = (this.getStat('duration') / 1000) * Player.duration;
-      WeaponManager.addZone({
-        x: zx, y: zy, radius: zoneRadius,
-        damage: dmg, lifetime: Math.max(1, lifetime),
-        timer: 0, tickTimer: 0, tickInterval: 0.5,
-      });
+        WeaponManager.addZone({
+          x: Game.wrap(zx), y: Game.wrap(zy), radius: zoneRadius,
+          damage: dmg, lifetime: Math.max(1, lifetime),
+          timer: 0, tickTimer: 0, tickInterval: 0.5,
+        });
     },
   });
 };
@@ -809,6 +809,7 @@ var WeaponManager = {
       if (p.type === 'homing') {
         p.x += p.vx * dt;
         p.y += p.vy * dt;
+        p.x = Game.wrap(p.x); p.y = Game.wrap(p.y);
         p.distTraveled += Math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
         if (p.distTraveled >= p.maxDist) { list.splice(i, 1); continue; }
         var target = findClosestEnemy(p.x, p.y, 250);
@@ -839,6 +840,7 @@ var WeaponManager = {
 
       p.x += p.vx * dt;
       p.y += p.vy * dt;
+      p.x = Game.wrap(p.x); p.y = Game.wrap(p.y);
       var moved = Math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
 
       if (p.trail) {
