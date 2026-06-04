@@ -21,6 +21,8 @@ const Player = {
   xpDiscount: 0,
   armor: 0,
   regen: 0,
+  vampChance: 0,
+  invuln: false,
   animFrame: 0,
   animTimer: 0,
   moving: false,
@@ -47,12 +49,10 @@ const Player = {
     this.moving = dx !== 0 || dy !== 0;
     if (this.moving) {
       const len = Math.sqrt(dx * dx + dy * dy);
-      dx /= len;
-      dy /= len;
-      this.x += dx * 200 * this.moveSpeed * dt;
-      this.y += dy * 200 * this.moveSpeed * dt;
-      this.x = Game.wrap(this.x);
-      this.y = Game.wrap(this.y);
+       dx /= len;
+       dy /= len;
+       this.x += dx * 200 * this.moveSpeed * dt;
+       this.y += dy * 200 * this.moveSpeed * dt;
       if (dy < 0) this.dir = 0;
       else if (dy > 0) this.dir = 3;
       if (dx > 0) this.dir = 2;
@@ -121,6 +121,7 @@ const Player = {
   },
 
   takeDamage(amount) {
+    if (this.invuln) return;
     this.hp -= amount;
     if (this.hp <= 0) {
       this.hp = 0;

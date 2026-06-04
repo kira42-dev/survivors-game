@@ -11,6 +11,10 @@ const Game = {
   accumulator: 0,
   fixedDt: 1 / 60,
   decorations: [],
+  nukeIntensity: 0,
+  shakeTimer: 0,
+  shakeIntensity: 20,
+  rageTimer: 0,
 
   wrap: function(v) {
     var ms = this.mapSize;
@@ -112,12 +116,41 @@ const Game = {
       txPlant: 'assets/sprites/decor/tx_plant.png',
       txProps: 'assets/sprites/decor/tx_props.png',
       boss: 'assets/sprites/enemies/boss.png',
+      lightning: 'assets/sprites/weapons/lightning.png',
+      holyWater: 'assets/sprites/weapons/holyWater.png',
+      bora: 'assets/sprites/weapons/bora.png',
+      loop: 'assets/sprites/weapons/loop.png',
+      unholyVespers: 'assets/sprites/weapons/unholyVespers.png',
+      magicWand: 'assets/sprites/weapons/magicWand.png',
+      emptyTome: 'assets/sprites/weapons/emptyTome.png',
+      fireball: 'assets/sprites/weapons/fireball.png',
+      bible: 'assets/sprites/weapons/bible.png',
+      whip: 'assets/sprites/weapons/whip.png',
+      holyMissile: 'assets/sprites/weapons/holyMissile.png',
+      bloodyTear: 'assets/sprites/weapons/bloodyTear.png',
+      deathSpiral: 'assets/sprites/weapons/deathSpiral.png',
+      thousandEdge: 'assets/sprites/weapons/thousandEdge.png',
+      hellfire: 'assets/sprites/weapons/hellfire.png',
+      might: 'assets/sprites/weapons/might.png',
+      armor: 'assets/sprites/weapons/armor.png',
+      maxHealth: 'assets/sprites/weapons/maxHealth.png',
+      regen: 'assets/sprites/weapons/regen.png',
+      area: 'assets/sprites/weapons/area.png',
+      speed: 'assets/sprites/weapons/speed.png',
+      duration: 'assets/sprites/weapons/duration.png',
+      amount: 'assets/sprites/weapons/amount.png',
+      magnet: 'assets/sprites/weapons/magnet.png',
+      growth: 'assets/sprites/weapons/growth.png',
+      vampirism: 'assets/sprites/weapons/vampirism.png',
+      nuke: 'assets/sprites/weapons/nuke.png',
+      rage: 'assets/sprites/weapons/rage.png',
     };
     for (const [key, src] of Object.entries(assets)) {
       const img = new Image();
       img.src = src;
       this.sprites[key] = img;
     }
+    this.spritePaths = assets;
   },
 
   generateDecorations: function() {
@@ -154,12 +187,16 @@ const Game = {
   },
 
   start() {
+    this.reset();
     this.camera.x = Player.x - this.width / 2;
     this.camera.y = Player.y - this.height / 2;
-    WeaponManager.reset();
     this.generateDecorations();
+    Enemy.spawnRageItem(Player.x + 80, Player.y);
     this.lastTime = performance.now();
-    this.loop(this.lastTime);
+    if (!this._started) {
+      this._started = true;
+      this.loop(this.lastTime);
+    }
   },
 
   loop(time) {
@@ -175,6 +212,15 @@ const Game = {
   },
 
   reset() {
+    Enemy.list.length = 0;
+    Enemy.xpGems.length = 0;
+    Enemy.nukeItems.length = 0;
+    Enemy.rageItems.length = 0;
+    Enemy.pickupParticles.length = 0;
+    PassiveManager.reset();
+    Spawner.reset();
+    WeaponManager.reset();
+
     Player.dead = false;
     Player.xp = 0;
     Player.level = 1;
@@ -187,23 +233,50 @@ const Game = {
     Player.speed = 1;
     Player.duration = 1;
     Player.amount = 0;
-
     Player.magnet = 0;
     Player.growth = 1;
     Player.xpDiscount = 0;
     Player.armor = 0;
     Player.regen = 0;
+    Player.vampChance = 0;
     Player.maxHp = 10;
     Player.hp = Player.maxHp;
     Player.x = 1500;
     Player.y = 1500;
-    Enemy.list = [];
-    Enemy.xpGems = [];
-    Spawner.reset();
-    WeaponManager.reset();
-    PassiveManager.reset();
     UI.reset();
+    this.nukeIntensity = 0;
+    this.shakeTimer = 0;
+    this.rageTimer = 0;
     this.state = 'PLAYING';
+  },
+
+  triggerNuke: function() {
+    this.nukeIntensity = 1;
+    this.shakeTimer = 0.5;
+    for (var ei = 0; ei < Enemy.list.length; ei++) {
+      var e = Enemy.list[ei];
+      if (e.alive && !e.dying) {
+        e.dying = true;
+        e.deathTimer = 0.4;
+        if (typeof WeaponManager !== 'undefined') {
+          WeaponManager.addVfx({ type: 'death', x: e.x, y: e.y, timer: 0, duration: 0.3, scale: e.isBoss ? 2 : 1 });
+        }
+      }
+    }
+  },
+
+  triggerRage: function() {
+    this.rageTimer = 8;
+    Player._savedCooldown = Player.cooldown;
+    Player._savedMoveSpeed = Player.moveSpeed;
+    Player.cooldown /= 4;
+    Player.moveSpeed *= 3;
+    Player.invuln = true;
+    Spawner.rageMul = 20;
+    var gp = document.getElementById('gameplayMusic');
+    if (gp && !gp.paused) { gp.pause(); }
+    var rage = document.getElementById('rageMusic');
+    if (rage) { rage.currentTime = 0; rage.play(); }
   },
 
   update(dt) {
@@ -214,6 +287,26 @@ const Game = {
     WeaponManager.update(dt);
     UI.gameTime += dt;
     if (UI.message) { UI.messageTimer -= dt; if (UI.messageTimer <= 0) { UI.message = null; } }
+
+    // Nuke visual tick
+    if (this.nukeIntensity > 0) this.nukeIntensity -= dt / 0.4;
+    if (this.shakeTimer > 0) this.shakeTimer -= dt;
+
+    // Rage tick
+    if (this.rageTimer > 0) {
+      this.rageTimer -= dt;
+      if (this.rageTimer <= 0) {
+        this.rageTimer = 0;
+        Player.cooldown = Player._savedCooldown;
+        Player.moveSpeed = Player._savedMoveSpeed;
+        Player.invuln = false;
+        Spawner.rageMul = 1;
+        var rage = document.getElementById('rageMusic');
+        if (rage) { rage.pause(); rage.currentTime = 0; }
+        var gp = document.getElementById('gameplayMusic');
+        if (gp) { gp.currentTime = 0; gp.play(); }
+      }
+    }
 
     // Regen tick every 5s
     UI._regenTimer = (UI._regenTimer || 0) + dt;
@@ -228,8 +321,10 @@ const Game = {
     // Enemy contact damage with armor reduction
     for (const e of Enemy.list) {
       if (!e.alive) continue;
-      const dx = Player.x - e.x;
-      const dy = Player.y - e.y;
+      const uex = Game.unwrap(e.x, Player.x);
+      const uey = Game.unwrap(e.y, Player.y);
+      const dx = Player.x - uex;
+      const dy = Player.y - uey;
       const threshold = 16;
       if (dx * dx + dy * dy < threshold * threshold) {
         var dmg = 1;
@@ -243,8 +338,10 @@ const Game = {
     // Boss contact damage (doesn't die on contact)
     for (const e of Enemy.list) {
       if (!e.alive || !e.isBoss) continue;
-      const dx = Player.x - e.x;
-      const dy = Player.y - e.y;
+      const uex = Game.unwrap(e.x, Player.x);
+      const uey = Game.unwrap(e.y, Player.y);
+      const dx = Player.x - uex;
+      const dy = Player.y - uey;
       const threshold = 32;
       if (dx * dx + dy * dy < threshold * threshold) {
         var dmg = 2;
@@ -262,27 +359,58 @@ const Game = {
     ctx.fillStyle = '#1a2a1a';
     ctx.fillRect(0, 0, this.width, this.height);
     ctx.save();
+    if (this.shakeTimer > 0) {
+      var si = this.shakeIntensity * (this.shakeTimer / 0.5);
+      ctx.translate(
+        (Math.random() - 0.5) * 2 * si,
+        (Math.random() - 0.5) * 2 * si
+      );
+    }
     ctx.translate(-this.camera.x, -this.camera.y);
     this.renderMap(ctx);
     Enemy.renderAll(ctx);
     WeaponManager.render(ctx);
     Enemy.renderXpGems(ctx);
+    Enemy.renderNukeItems(ctx);
+    Enemy.renderRageItems(ctx);
     Player.render(ctx);
     ctx.restore();
+    if (this.nukeIntensity > 0) {
+      var ni = Math.max(0, this.nukeIntensity);
+      var ringP = 1 - ni;
+      var ringR = ringP * Math.max(this.width, this.height) * 0.8;
+      ctx.fillStyle = 'rgba(5, 5, 40, ' + (0.35 * ni) + ')';
+      ctx.fillRect(0, 0, this.width, this.height);
+      if (ringP > 0) {
+        ctx.fillStyle = 'rgba(255, 200, 100, ' + (0.25 * Math.sin(ringP * Math.PI)) + ')';
+        ctx.beginPath();
+        ctx.arc(this.width / 2, this.height / 2, ringR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      var flashA = ni > 0.8 ? (ni - 0.8) / 0.2 : 0;
+      if (flashA > 0) {
+        ctx.fillStyle = 'rgba(255, 255, 255, ' + flashA + ')';
+        ctx.fillRect(0, 0, this.width, this.height);
+      }
+    }
+    if (this.rageTimer > 0) {
+      ctx.fillStyle = 'rgba(80, 0, 0, 0.3)';
+      ctx.fillRect(0, 0, this.width, this.height);
+    }
     UI.render(ctx);
   },
 
-  renderMap(ctx) {
-    const grass = this.sprites.plains;
-    if (!grass || grass.width === 0) return;
-    const ts = this.GRASS_TS;
-    const gCols = this.GRASS_COLS;
-    const ms = this.mapSize;
-    const numTiles = Math.floor(ms / ts);
-    const sx = Math.max(0, Math.floor(this.camera.x / ts) * ts);
-    const sy = Math.max(0, Math.floor(this.camera.y / ts) * ts);
-    const ex = Math.min(ms, this.camera.x + this.width + ts);
-    const ey = Math.min(ms, this.camera.y + this.height + ts);
+    renderMap(ctx) {
+        const grass = this.sprites.plains;
+        if (!grass || grass.width === 0) return;
+        const ts = this.GRASS_TS;
+        const gCols = this.GRASS_COLS;
+        // Increased buffer to prevent visible world loading
+        const buffer = ts * 3; // Render 3 tiles beyond visible area
+        const sx = Math.floor((this.camera.x - buffer) / ts) * ts;
+        const sy = Math.floor((this.camera.y - buffer) / ts) * ts;
+        const ex = this.camera.x + this.width + buffer + ts;
+        const ey = this.camera.y + this.height + buffer + ts;
 
     for (let y = sy; y < ey; y += ts) {
       for (let x = sx; x < ex; x += ts) {
@@ -299,12 +427,16 @@ const Game = {
     var cy = this.camera.y;
     var cw = this.width;
     var ch = this.height;
+    var cex = cx + cw / 2;
+    var cey = cy + ch / 2;
     for (var i = 0; i < this.decorations.length; i++) {
       var d = this.decorations[i];
-      if (d.x + d.def.w < cx || d.x > cx + cw || d.y + d.def.h < cy || d.y > cy + ch) continue;
+      var ux = Game.unwrap(d.x, cex);
+      var uy = Game.unwrap(d.y, cey);
+      if (ux + d.def.w < cx || ux > cx + cw || uy + d.def.h < cy || uy > cy + ch) continue;
       var sprite = this.sprites[d.def.key];
       if (!sprite || sprite.width === 0) continue;
-      ctx.drawImage(sprite, d.def.sx, d.def.sy, d.def.w, d.def.h, d.x, d.y, d.def.w, d.def.h);
+      ctx.drawImage(sprite, d.def.sx, d.def.sy, d.def.w, d.def.h, ux, uy, d.def.w, d.def.h);
     }
   },
 };

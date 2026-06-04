@@ -21,6 +21,7 @@ const UI = {
     this.drawHpBar(ctx);
     this.drawXpBar(ctx);
     this.drawStats(ctx);
+    this.drawMinimap(ctx);
     if (this.message) {
       ctx.save();
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -72,11 +73,74 @@ const UI = {
     ctx.fillText(`Lv.${Player.level} ${Player.xp}/${Player.xpToNext} XP`, x + w / 2, y + 12);
   },
 
+  drawMinimap(ctx) {
+    var mmSize = 150;
+    var margin = 16;
+    var mmX = Game.width - mmSize - margin;
+    var mmY = Game.height - mmSize - margin;
+    var center = mmSize / 2;
+    var worldView = 700;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(mmX, mmY, mmSize, mmSize);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(mmX, mmY, mmSize, mmSize);
+
+    ctx.save();
+    ctx.translate(mmX, mmY);
+
+    var ms = Game.mapSize;
+    var scale = center / worldView;
+
+    for (var ei = 0; ei < Enemy.list.length; ei++) {
+      var e = Enemy.list[ei];
+      if (!e.alive) continue;
+      var ux = Game.unwrap(e.x, Player.x);
+      var uy = Game.unwrap(e.y, Player.y);
+      var dx = ux - Player.x;
+      var dy = uy - Player.y;
+      if (Math.abs(dx) > worldView || Math.abs(dy) > worldView) continue;
+      var ex = center + dx * scale;
+      var ey = center + dy * scale;
+      ctx.fillStyle = e.isElite ? '#ff0' : '#e22';
+      ctx.fillRect(ex - 1.5, ey - 1.5, 3, 3);
+    }
+
+    for (var gi = 0; gi < Enemy.xpGems.length; gi++) {
+      var g = Enemy.xpGems[gi];
+      if (!g.alive) continue;
+      var ux = Game.unwrap(g.x, Player.x);
+      var uy = Game.unwrap(g.y, Player.y);
+      var dx = ux - Player.x;
+      var dy = uy - Player.y;
+      if (Math.abs(dx) > worldView || Math.abs(dy) > worldView) continue;
+      var gx = center + dx * scale;
+      var gy = center + dy * scale;
+      ctx.fillStyle = '#8f8';
+      ctx.fillRect(gx - 1, gy - 1, 2, 2);
+    }
+
+    ctx.fillStyle = '#4f4';
+    ctx.beginPath();
+    ctx.arc(center, center, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.restore();
+  },
+
   _weaponSpriteTag(spriteKey) {
     if (!spriteKey) return '';
-    var s = Game.sprites[spriteKey];
-    if (!s || s.width === 0) return '';
-    return `<img src="${s.src}" class="upgrade-weapon-img">`;
+    var path = Game.spritePaths && Game.spritePaths[spriteKey];
+    if (!path) {
+      var s = Game.sprites[spriteKey];
+      if (!s) return '';
+      path = s.src;
+    }
+    return `<img src="${path}" class="upgrade-weapon-img">`;
   },
 
   showUpgrades() {
@@ -106,25 +170,17 @@ const UI = {
 
   getRandomUpgrades(count) {
     var pool = [];
-    var oldUpgrades = [
-      { type: 'stat', id: 'damage', name: 'Damage', icon: '+', desc: '+1 к урону', nameRu: 'Урон' },
-      { type: 'stat', id: 'range', name: 'Range', icon: '<->', desc: '+40 к дальности', nameRu: 'Дальность' },
-      { type: 'stat', id: 'maxHp', name: 'Max HP', icon: '*', desc: '+5 макс. HP и лечение', nameRu: 'Макс. HP' },
-    ];
-    pool = pool.concat(oldUpgrades);
 
     var PASSIVE_DESC_RU = {
       power:     'Урон +10%',
-      armor:     'Броня +1',
       maxHpMult: 'Макс. HP +10%',
       regen:     'Регенерация +0.1',
       cooldown:  'Перезарядка -2.5%',
-      area:      'Область +5%',
       speed:     'Скорость снарядов +10%',
-      duration:  'Длительность +15%',
       amount:    'Количество +1',
-      magnet:    'Магнит +20',
-      growth:    'Рост +10%',
+      magnet:    'Магнит +100',
+      growth:    'Требуется на 10% меньше опыта',
+      vampChance: 'Вампиризм 10%',
     };
 
     function passDescRu(pdef) {
@@ -163,9 +219,9 @@ const UI = {
 
     // Add unowned non-evolved weapons
     for (var key in WEAPON_FACTORIES) {
-      if (key === 'holyMissile' || key === 'bloodyTear' || key === 'deathSpiral' ||
+      if (key === 'holyMissile' || key === 'bloodyTear' ||
           key === 'thousandEdge' || key === 'hellfire' || key === 'bora' ||
-          key === 'loop' || key === 'unholyVespers') continue;
+          key === 'loop') continue;
       if (!WeaponManager.hasWeapon(key)) {
         var def = WEAPON_FACTORIES[key]();
         pool.push({ type: 'weaponNew', id: key, name: def.nameRu, icon: '\u2694', desc: 'Новое оружие', _sprite: WEAPON_SPRITE_MAP[key] });
@@ -175,11 +231,12 @@ const UI = {
     // Add passive items
     for (var pid in PASSIVE_DEFS) {
       var pdef = PASSIVE_DEFS[pid];
+      var passiveSprite = PASSIVE_SPRITE_MAP[pid] || null;
       if (!PassiveManager.has(pid)) {
-        pool.push({ type: 'passive', id: pid, name: pdef.nameRu, icon: '\u25C8', desc: passDescRu(pdef) });
+        pool.push({ type: 'passive', id: pid, name: pdef.nameRu, icon: '\u25C8', desc: passDescRu(pdef), _sprite: passiveSprite });
       } else if (!PassiveManager.isMaxed(pid)) {
         var level = PassiveManager.getLevel(pid);
-        pool.push({ type: 'passive', id: pid, name: pdef.nameRu + ' Ур.' + (level + 1), icon: '\u25C8', desc: passDescRu(pdef) });
+        pool.push({ type: 'passive', id: pid, name: pdef.nameRu + ' Ур.' + (level + 1), icon: '\u25C8', desc: passDescRu(pdef), _sprite: passiveSprite });
       }
     }
 
@@ -225,17 +282,18 @@ const UI = {
       PassiveManager.add(id);
       return;
     }
-    // Old stat upgrades
-    switch (id) {
-      case 'damage': WeaponManager.globalDamage += 1; break;
-      case 'range': WeaponManager.globalDamage += 0.5; break;
-      case 'maxHp': Player.maxHp += 5; Player.hp = Player.maxHp; break;
-    }
+
   },
 
   showGameOver() {
     const overlay = document.getElementById('upgradeOverlay');
     if (!overlay) return;
+    var gp = document.getElementById('gameplayMusic');
+    if (gp) { gp.pause(); gp.currentTime = 0; }
+    var rage = document.getElementById('rageMusic');
+    if (rage) { rage.pause(); rage.currentTime = 0; }
+    var menu = document.getElementById('menuMusic');
+    if (menu) { menu.currentTime = 0; menu.play(); }
     const mins = Math.floor(this.gameTime / 60);
     const secs = Math.floor(this.gameTime % 60);
     overlay.innerHTML = `<div class="gameover-title">GAME OVER</div>
@@ -244,11 +302,16 @@ const UI = {
         <div>Kills: ${Player.kills}</div>
         <div>Level: ${Player.level}</div>
       </div>
-      <button class="restart-btn" id="restartBtn">RESTART</button>`;
+      <button class="restart-btn" id="restartBtn">RESTART</button>
+      <button class="restart-btn menu-btn" id="menuBtn" style="margin-top:10px;background:#333;border-color:#666;">ГЛАВНОЕ МЕНЮ</button>`;
     overlay.style.display = 'flex';
     document.getElementById('restartBtn').addEventListener('click', () => {
       overlay.style.display = 'none';
       Game.reset();
+    });
+    document.getElementById('menuBtn').addEventListener('click', () => {
+      overlay.style.display = 'none';
+      document.getElementById('mainMenu').style.display = 'flex';
     });
   },
 };

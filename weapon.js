@@ -4,8 +4,10 @@ function findClosestEnemy(x, y, range) {
   for (var i = 0; i < Enemy.list.length; i++) {
     var e = Enemy.list[i];
     if (!e.alive) continue;
-    var dx = e.x - x;
-    var dy = e.y - y;
+    var ux = Game.unwrap(e.x, x);
+    var uy = Game.unwrap(e.y, y);
+    var dx = ux - x;
+    var dy = uy - y;
     var distSq = dx * dx + dy * dy;
     if (distSq < minDist && distSq < range * range) {
       minDist = distSq;
@@ -15,46 +17,50 @@ function findClosestEnemy(x, y, range) {
   return closest;
 }
 
-function findEnemiesInRadius(x, y, radius) {
-  var result = [];
+function forEachEnemyInRadius(x, y, radius, fn) {
+  var r2 = radius * radius;
   for (var i = 0; i < Enemy.list.length; i++) {
     var e = Enemy.list[i];
     if (!e.alive) continue;
-    var dx = e.x - x;
-    var dy = e.y - y;
-    if (dx * dx + dy * dy < radius * radius) result.push(e);
+    var ux = Game.unwrap(e.x, x);
+    var uy = Game.unwrap(e.y, y);
+    var dx = ux - x;
+    var dy = uy - y;
+    if (dx * dx + dy * dy < r2) fn(e);
   }
-  return result;
 }
 
 function damageEnemy(e, dmg) {
   e.hp -= dmg;
-  if (e.hp <= 0) {
-    e.alive = false;
-    Player.kills++;
-    Enemy.spawnXpGem(e.x, e.y, e.xp);
+  if (Player.vampChance > 0 && Math.random() < Player.vampChance) {
+    Player.hp = Math.min(Player.maxHp, Player.hp + 1);
+  }
+  if (e.hp <= 0 && !e.dying) {
+    e.dying = true;
+    e.deathTimer = 0.4;
+    if (typeof WeaponManager !== 'undefined') {
+      WeaponManager.addVfx({ type: 'death', x: e.x, y: e.y, timer: 0, duration: 0.3, scale: e.isBoss ? 2 : 1 });
+    }
   }
 }
 
 var WEAPON_SPRITE_MAP = {
-  magicArrow: 'bow',
-  fireball: 'crystalsword',
+  magicArrow: 'magicWand',
+  fireball: 'fireball',
   throwingKnife: 'dagger',
   axe: 'doubleaxe',
-  lightning: null,
-  holyWater: null,
-  bible: 'longsword',
-
-  whip: 'flail',
-  holyMissile: 'bow',
-  bloodyTear: 'flail',
-  deathSpiral: 'doubleaxe',
-  thousandEdge: 'dagger',
-  hellfire: 'crystalsword',
-  bora: null,
-  loop: null,
-  unholyVespers: null,
-
+  lightning: 'lightning',
+  holyWater: 'holyWater',
+  bible: 'bible',
+  whip: 'whip',
+  holyMissile: 'holyMissile',
+  bloodyTear: 'bloodyTear',
+  deathSpiral: 'deathSpiral',
+  thousandEdge: 'thousandEdge',
+  hellfire: 'hellfire',
+  bora: 'bora',
+  loop: 'loop',
+  unholyVespers: 'unholyVespers',
 };
 
 function getSpawnPos() {
@@ -129,8 +135,10 @@ WEAPON_FACTORIES.magicArrow = function() {
       var amt = this.getStat('amount') + Player.amount;
       for (var ai = 0; ai < amt; ai++) {
         var spd = 500 * Player.speed;
-        var dx = target.x - Player.x + (Math.random() - 0.5) * 30 * ai;
-        var dy = target.y - Player.y + (Math.random() - 0.5) * 30 * ai;
+        var tx = Game.unwrap(target.x, Player.x);
+        var ty = Game.unwrap(target.y, Player.y);
+        var dx = tx - Player.x + (Math.random() - 0.5) * 30 * ai;
+        var dy = ty - Player.y + (Math.random() - 0.5) * 30 * ai;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (dist === 0) continue;
         WeaponManager.addProjectile({
@@ -161,8 +169,10 @@ WEAPON_FACTORIES.fireball = function() {
       var amt = this.getStat('amount') + Player.amount;
       for (var ai = 0; ai < amt; ai++) {
         var spd = 350 * Player.speed;
-        var dx = target.x - Player.x + (Math.random() - 0.5) * 50;
-        var dy = target.y - Player.y + (Math.random() - 0.5) * 50;
+        var tx = Game.unwrap(target.x, Player.x);
+        var ty = Game.unwrap(target.y, Player.y);
+        var dx = tx - Player.x + (Math.random() - 0.5) * 50;
+        var dy = ty - Player.y + (Math.random() - 0.5) * 50;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (dist === 0) continue;
         WeaponManager.addProjectile({
@@ -194,8 +204,10 @@ WEAPON_FACTORIES.throwingKnife = function() {
       var amt = this.getStat('amount') + Player.amount;
       for (var ai = 0; ai < amt; ai++) {
         var spd = 600 * Player.speed;
-        var dx = target.x - Player.x + (Math.random() - 0.5) * 20;
-        var dy = target.y - Player.y + (Math.random() - 0.5) * 20;
+        var tx = Game.unwrap(target.x, Player.x);
+        var ty = Game.unwrap(target.y, Player.y);
+        var dx = tx - Player.x + (Math.random() - 0.5) * 20;
+        var dy = ty - Player.y + (Math.random() - 0.5) * 20;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (dist === 0) continue;
         WeaponManager.addProjectile({
@@ -203,7 +215,8 @@ WEAPON_FACTORIES.throwingKnife = function() {
           x: Player.x, y: Player.y,
           vx: (dx / dist) * spd, vy: (dy / dist) * spd,
           damage: dmg, maxDist: range, distTraveled: 0,
-          remainingPierce: Math.max(1, this.getStat('penetrating')),
+          maxBounces: Math.max(1, this.getStat('penetrating')),
+          bounceCount: 0,
           hitEnemies: [],
         });
       }
@@ -219,7 +232,6 @@ WEAPON_FACTORIES.axe = function() {
       { amount: 1 }, { power: 2 }, { penetrating: 2 },
       { amount: 1 }, { power: 2 }, { penetrating: 2 }, { power: 2 },
     ],
-    evoSynergy: 'AREA', evoId: 'deathSpiral',
     attack: function() {
       var range = 300 * Player.area;
       var target = findClosestEnemy(Player.x, Player.y, range);
@@ -228,8 +240,10 @@ WEAPON_FACTORIES.axe = function() {
       var amt = this.getStat('amount') + Player.amount;
       for (var ai = 0; ai < amt; ai++) {
         var spd = 300 * Player.speed;
-        var dx = target.x - Player.x + (Math.random() - 0.5) * 40;
-        var dy = target.y - Player.y + (Math.random() - 0.5) * 40;
+        var tx = Game.unwrap(target.x, Player.x);
+        var ty = Game.unwrap(target.y, Player.y);
+        var dx = tx - Player.x + (Math.random() - 0.5) * 40;
+        var dy = ty - Player.y + (Math.random() - 0.5) * 40;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (dist === 0) continue;
         WeaponManager.addProjectile({
@@ -262,7 +276,9 @@ WEAPON_FACTORIES.lightning = function() {
       var chain = [target];
       var last = target;
       for (var c = 0; c < chains; c++) {
-        var next = findClosestEnemy(last.x, last.y, 100);
+        var lx = Game.unwrap(last.x, Player.x);
+        var ly = Game.unwrap(last.y, Player.y);
+        var next = findClosestEnemy(lx, ly, 100);
         if (next && chain.indexOf(next) === -1) { chain.push(next); last = next; }
         else break;
       }
@@ -288,7 +304,9 @@ WEAPON_FACTORIES.loop = function() {
       var chain = [target];
       var last = target;
       for (var c = 0; c < chains; c++) {
-        var next = findClosestEnemy(last.x, last.y, 120);
+        var lx = Game.unwrap(last.x, Player.x);
+        var ly = Game.unwrap(last.y, Player.y);
+        var next = findClosestEnemy(lx, ly, 120);
         if (next && chain.indexOf(next) === -1) { chain.push(next); last = next; }
         else break;
       }
@@ -314,7 +332,7 @@ WEAPON_FACTORIES.holyWater = function() {
       var range = 200 * Player.area;
       var target = findClosestEnemy(Player.x, Player.y, range);
       var zx, zy;
-      if (target) { zx = target.x; zy = target.y; }
+      if (target) { zx = Game.unwrap(target.x, Player.x); zy = Game.unwrap(target.y, Player.y); }
       else {
         var angle = Math.random() * Math.PI * 2;
         zx = Player.x + Math.cos(angle) * 60;
@@ -327,6 +345,7 @@ WEAPON_FACTORIES.holyWater = function() {
           x: Game.wrap(zx), y: Game.wrap(zy), radius: zoneRadius,
           damage: dmg, lifetime: Math.max(1, lifetime),
           timer: 0, tickTimer: 0, tickInterval: 0.5,
+          zoneType: 'holyWater',
         });
     },
   });
@@ -346,7 +365,6 @@ WEAPON_FACTORIES.bible = function() {
       { amount: 1 },
     ],
     hitDelay: 1.7,
-    evoSynergy: 'DURATION', evoId: 'unholyVespers',
     attack: function() {
       var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
       var amt = this.getStat('amount') + Player.amount;
@@ -399,8 +417,10 @@ WEAPON_FACTORIES.whip = function() {
         for (var ei = 0; ei < Enemy.list.length; ei++) {
           var e = Enemy.list[ei];
           if (!e.alive) continue;
-          var dx = e.x - Player.x;
-          var dy = e.y - Player.y;
+          var ux = Game.unwrap(e.x, Player.x);
+          var uy = Game.unwrap(e.y, Player.y);
+          var dx = ux - Player.x;
+          var dy = uy - Player.y;
           var dist = Math.sqrt(dx * dx + dy * dy);
           if (dist > range || dist < 10) continue;
           var ea = Math.atan2(dy, dx);
@@ -415,36 +435,6 @@ WEAPON_FACTORIES.whip = function() {
       }
       if (hitAny) {
         WeaponManager.addVfx({ type: 'slash', x: Player.x, y: Player.y, dir: dir, timer: 0, duration: 0.15 });
-      }
-    },
-  });
-};
-
-// ===== Evolved Weapons =====
-
-WEAPON_FACTORIES.holyMissile = function() {
-  return createWeapon({
-    id: 'holyMissile', name: 'Holy Wand', nameRu: 'Святая палочка',
-    base: { power: 3, interval: 500, area: 1, speed: 2, amount: 4, penetrating: 2 },
-    bonuses: [],
-    attack: function() {
-      var range = 500 * Player.area;
-      var target = findClosestEnemy(Player.x, Player.y, range);
-      if (!target) return;
-      var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
-      var amt = this.getStat('amount') + Player.amount;
-      for (var ai = 0; ai < amt; ai++) {
-        var spd = 700 * Player.speed;
-        var dx = target.x - Player.x + (Math.random() - 0.5) * 20;
-        var dy = target.y - Player.y + (Math.random() - 0.5) * 20;
-        var dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist === 0) continue;
-        WeaponManager.addProjectile({
-          type: 'standard', trail: true,
-          x: Player.x, y: Player.y,
-          vx: (dx / dist) * spd, vy: (dy / dist) * spd,
-          damage: dmg, maxDist: range, distTraveled: 0,
-        });
       }
     },
   });
@@ -471,8 +461,10 @@ WEAPON_FACTORIES.bloodyTear = function() {
         for (var ei = 0; ei < Enemy.list.length; ei++) {
           var e = Enemy.list[ei];
           if (!e.alive) continue;
-          var dx = e.x - Player.x;
-          var dy = e.y - Player.y;
+          var ux = Game.unwrap(e.x, Player.x);
+          var uy = Game.unwrap(e.y, Player.y);
+          var dx = ux - Player.x;
+          var dy = uy - Player.y;
           var dist = Math.sqrt(dx * dx + dy * dy);
           if (dist > range || dist < 10) continue;
           var ea = Math.atan2(dy, dx);
@@ -488,6 +480,38 @@ WEAPON_FACTORIES.bloodyTear = function() {
       }
       if (hitAny) {
         WeaponManager.addVfx({ type: 'slash', x: Player.x, y: Player.y, dir: dir, timer: 0, duration: 0.15 });
+      }
+    },
+  });
+};
+
+// ===== Evolved Weapons =====
+
+WEAPON_FACTORIES.holyMissile = function() {
+  return createWeapon({
+    id: 'holyMissile', name: 'Holy Wand', nameRu: 'Святая палочка',
+    base: { power: 3, interval: 500, area: 1, speed: 2, amount: 4, penetrating: 2 },
+    bonuses: [],
+    attack: function() {
+      var range = 500 * Player.area;
+      var target = findClosestEnemy(Player.x, Player.y, range);
+      if (!target) return;
+      var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
+      var amt = this.getStat('amount') + Player.amount;
+      for (var ai = 0; ai < amt; ai++) {
+        var spd = 700 * Player.speed;
+        var tx = Game.unwrap(target.x, Player.x);
+        var ty = Game.unwrap(target.y, Player.y);
+        var dx = tx - Player.x + (Math.random() - 0.5) * 20;
+        var dy = ty - Player.y + (Math.random() - 0.5) * 20;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist === 0) continue;
+        WeaponManager.addProjectile({
+          type: 'standard', trail: true,
+          x: Player.x, y: Player.y,
+          vx: (dx / dist) * spd, vy: (dy / dist) * spd,
+          damage: dmg, maxDist: range, distTraveled: 0,
+        });
       }
     },
   });
@@ -554,8 +578,10 @@ WEAPON_FACTORIES.hellfire = function() {
         var target = findClosestEnemy(Player.x, Player.y, range);
         if (!target) break;
         var spd = 400 * Player.speed;
-        var dx = target.x - Player.x + (Math.random() - 0.5) * 60;
-        var dy = target.y - Player.y + (Math.random() - 0.5) * 60;
+        var tx = Game.unwrap(target.x, Player.x);
+        var ty = Game.unwrap(target.y, Player.y);
+        var dx = tx - Player.x + (Math.random() - 0.5) * 60;
+        var dy = ty - Player.y + (Math.random() - 0.5) * 60;
         var dist = Math.sqrt(dx * dx + dy * dy);
         if (dist === 0) continue;
         WeaponManager.addProjectile({
@@ -587,6 +613,7 @@ WEAPON_FACTORIES.bora = function() {
           x: zx, y: zy, radius: zoneRadius,
           damage: dmg, lifetime: Math.max(1, lifetime),
           timer: 0, tickTimer: 0, tickInterval: 0.4,
+          zoneType: 'bora',
         });
       }
     },
@@ -636,10 +663,10 @@ var WeaponManager = {
   globalDamage: 0,
 
   reset: function() {
-    this.weapons = [];
-    this.projectiles = [];
-    this.vfx = [];
-    this.zones = [];
+    this.weapons.length = 0;
+    this.projectiles.length = 0;
+    this.vfx.length = 0;
+    this.zones.length = 0;
     this.globalDamage = 0;
     this.addWeapon('throwingKnife');
   },
@@ -715,19 +742,47 @@ var WeaponManager = {
 
   addProjectile: function(cfg) {
     if (_currentWeaponId) cfg._weapon = _currentWeaponId;
+    cfg.alive = true;
+    cfg.maxBounces = cfg.maxBounces || 0;
+    cfg.bounceCount = cfg.bounceCount || 0;
+    for (var i = 0; i < this.projectiles.length; i++) {
+      if (!this.projectiles[i].alive) {
+        this.projectiles[i] = cfg;
+        return;
+      }
+    }
     this.projectiles.push(cfg);
   },
-  addVfx: function(cfg) { this.vfx.push(cfg); },
-  addZone: function(cfg) { this.zones.push(cfg); },
+  addVfx: function(cfg) {
+    cfg.alive = true;
+    for (var i = 0; i < this.vfx.length; i++) {
+      if (!this.vfx[i].alive) {
+        this.vfx[i] = cfg;
+        return;
+      }
+    }
+    this.vfx.push(cfg);
+  },
+  addZone: function(cfg) {
+    cfg.alive = true;
+    for (var i = 0; i < this.zones.length; i++) {
+      if (!this.zones[i].alive) {
+        this.zones[i] = cfg;
+        return;
+      }
+    }
+    this.zones.push(cfg);
+  },
 
   _updateProjectiles: function(dt) {
     var list = this.projectiles;
     for (var i = list.length - 1; i >= 0; i--) {
       var p = list[i];
+      if (!p.alive) continue;
 
       if (p.type === 'orbital') {
         p.timer += dt;
-        if (p.lifetime && p.timer >= p.lifetime) { list.splice(i, 1); continue; }
+        if (p.lifetime && p.timer >= p.lifetime) { p.alive = false; continue; }
         p.angle += p.speed * dt;
         p.x = Player.x + Math.cos(p.angle) * p.radius;
         p.y = Player.y + Math.sin(p.angle) * p.radius;
@@ -737,8 +792,10 @@ var WeaponManager = {
           for (var ei = 0; ei < Enemy.list.length; ei++) {
             var e = Enemy.list[ei];
             if (!e.alive) continue;
-            var dx = p.x - e.x;
-            var dy = p.y - e.y;
+            var uex = Game.unwrap(e.x, p.x);
+            var uey = Game.unwrap(e.y, p.y);
+            var dx = p.x - uex;
+            var dy = p.y - uey;
             if (dx * dx + dy * dy < 22 * 22) {
               damageEnemy(e, p.damage);
               p.hitTimer = 0.3;
@@ -748,16 +805,15 @@ var WeaponManager = {
         continue;
       }
 
-      if (p.type === 'homing') {
-        p.x += p.vx * dt;
-        p.y += p.vy * dt;
-        p.x = Game.wrap(p.x); p.y = Game.wrap(p.y);
+         if (p.type === 'homing') {
+           p.x += p.vx * dt;
+           p.y += p.vy * dt;
         p.distTraveled += Math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
-        if (p.distTraveled >= p.maxDist) { list.splice(i, 1); continue; }
+        if (p.distTraveled >= p.maxDist) { p.alive = false; continue; }
         var target = findClosestEnemy(p.x, p.y, 250);
         if (target) {
-          var tdx = target.x - p.x;
-          var tdy = target.y - p.y;
+          var tdx = Game.unwrap(target.x, p.x) - p.x;
+          var tdy = Game.unwrap(target.y, p.y) - p.y;
           var td = Math.sqrt(tdx * tdx + tdy * tdy);
           if (td > 0) {
             p.vx += (tdx / td) * p.seek * dt;
@@ -769,20 +825,21 @@ var WeaponManager = {
         for (var ei = 0; ei < Enemy.list.length; ei++) {
           var e = Enemy.list[ei];
           if (!e.alive) continue;
-          var dx = p.x - e.x;
-          var dy = p.y - e.y;
+          var uex = Game.unwrap(e.x, p.x);
+          var uey = Game.unwrap(e.y, p.y);
+          var dx = p.x - uex;
+          var dy = p.y - uey;
           if (dx * dx + dy * dy < 18 * 18) {
             damageEnemy(e, p.damage);
-            list.splice(i, 1);
+            p.alive = false;
             break;
           }
         }
         continue;
       }
 
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      p.x = Game.wrap(p.x); p.y = Game.wrap(p.y);
+       p.x += p.vx * dt;
+       p.y += p.vy * dt;
       var moved = Math.sqrt(p.vx * p.vx + p.vy * p.vy) * dt;
 
       if (p.trail) {
@@ -800,15 +857,17 @@ var WeaponManager = {
           var bdx = Player.x - p.x;
           var bdy = Player.y - p.y;
           var bd = Math.sqrt(bdx * bdx + bdy * bdy);
-          if (bd < 20) { list.splice(i, 1); continue; }
+          if (bd < 20) { p.alive = false; continue; }
           p.vx = (bdx / bd) * p.speed;
           p.vy = (bdy / bd) * p.speed;
         }
         for (var ei = 0; ei < Enemy.list.length; ei++) {
           var e = Enemy.list[ei];
           if (!e.alive) continue;
-          var dx = p.x - e.x;
-          var dy = p.y - e.y;
+          var uex = Game.unwrap(e.x, p.x);
+          var uey = Game.unwrap(e.y, p.y);
+          var dx = p.x - uex;
+          var dy = p.y - uey;
           if (dx * dx + dy * dy < 20 * 20) {
             damageEnemy(e, p.damage);
           }
@@ -821,7 +880,7 @@ var WeaponManager = {
         if (p.explosionRadius) {
           this._explode(p.x, p.y, p.explosionRadius, Math.ceil(p.damage * 0.4));
         }
-        list.splice(i, 1);
+        p.alive = false;
         continue;
       }
 
@@ -829,13 +888,50 @@ var WeaponManager = {
         for (var ei = 0; ei < Enemy.list.length; ei++) {
           var e = Enemy.list[ei];
           if (!e.alive || p.hitEnemies.indexOf(e) !== -1) continue;
-          var dx = p.x - e.x;
-          var dy = p.y - e.y;
+          var uex = Game.unwrap(e.x, p.x);
+          var uey = Game.unwrap(e.y, p.y);
+          var dx = p.x - uex;
+          var dy = p.y - uey;
           if (dx * dx + dy * dy < 18 * 18) {
             damageEnemy(e, p.damage);
             p.hitEnemies.push(e);
-            p.remainingPierce--;
-            if (p.remainingPierce <= 0) { list.splice(i, 1); break; }
+            if (p.maxBounces > 0) {
+              p.bounceCount++;
+              if (p.bounceCount > p.maxBounces) { p.alive = false; break; }
+              var nextTarget = null;
+              var nextDistSq = Infinity;
+              var bounceRangeSq = 300 * 300;
+              for (var je = 0; je < Enemy.list.length; je++) {
+                var ce = Enemy.list[je];
+                if (!ce.alive || p.hitEnemies.indexOf(ce) !== -1) continue;
+                var cex = Game.unwrap(ce.x, p.x);
+                var cey = Game.unwrap(ce.y, p.y);
+                var cdx = p.x - cex;
+                var cdy = p.y - cey;
+                var cdSq = cdx * cdx + cdy * cdy;
+                if (cdSq < nextDistSq && cdSq < bounceRangeSq) {
+                  nextDistSq = cdSq;
+                  nextTarget = ce;
+                }
+              }
+              if (nextTarget) {
+                var ntx = Game.unwrap(nextTarget.x, p.x);
+                var nty = Game.unwrap(nextTarget.y, p.y);
+                var ndx = ntx - p.x;
+                var ndy = nty - p.y;
+                var ndist = Math.sqrt(ndx * ndx + ndy * ndy);
+                var spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                p.vx = (ndx / ndist) * spd;
+                p.vy = (ndy / ndist) * spd;
+                this.addVfx({ type: 'spark', x: p.x, y: p.y, timer: 0, duration: 0.15, vx: p.vx, vy: p.vy });
+              } else {
+                p.alive = false;
+                break;
+              }
+            } else {
+              p.remainingPierce--;
+              if (p.remainingPierce <= 0) { p.alive = false; break; }
+            }
           }
         }
         continue;
@@ -846,8 +942,10 @@ var WeaponManager = {
         for (var ei = 0; ei < Enemy.list.length; ei++) {
           var e = Enemy.list[ei];
           if (!e.alive) continue;
-          var dx = p.x - e.x;
-          var dy = p.y - e.y;
+          var uex = Game.unwrap(e.x, p.x);
+          var uey = Game.unwrap(e.y, p.y);
+          var dx = p.x - uex;
+          var dy = p.y - uey;
           if (dx * dx + dy * dy < 20 * 20) {
             damageEnemy(e, p.damage);
             this._explode(p.x, p.y, p.explosionRadius, Math.ceil(p.damage * 0.5));
@@ -855,54 +953,75 @@ var WeaponManager = {
             break;
           }
         }
-        if (hit) { list.splice(i, 1); continue; }
+        if (hit) { p.alive = false; continue; }
         continue;
       }
 
       for (var ei = 0; ei < Enemy.list.length; ei++) {
         var e = Enemy.list[ei];
         if (!e.alive) continue;
-        var dx = p.x - e.x;
-        var dy = p.y - e.y;
+        var uex = Game.unwrap(e.x, p.x);
+        var uey = Game.unwrap(e.y, p.y);
+        var dx = p.x - uex;
+        var dy = p.y - uey;
         if (dx * dx + dy * dy < 18 * 18) {
           damageEnemy(e, p.damage);
-          list.splice(i, 1);
+          p.alive = false;
           break;
         }
       }
     }
+    var wi = 0;
+    for (var ri = 0; ri < list.length; ri++) {
+      if (list[ri].alive) {
+        list[wi++] = list[ri];
+      }
+    }
+    list.length = wi;
   },
 
   _explode: function(x, y, radius, dmg) {
     this.addVfx({ type: 'explosion', x: x, y: y, timer: 0, duration: 0.3, maxRadius: radius });
-    var enemies = findEnemiesInRadius(x, y, radius);
-    for (var i = 0; i < enemies.length; i++) {
-      damageEnemy(enemies[i], dmg);
-    }
+    forEachEnemyInRadius(x, y, radius, function(e) {
+      damageEnemy(e, dmg);
+    });
   },
 
   _updateZones: function(dt) {
-    for (var i = this.zones.length - 1; i >= 0; i--) {
-      var z = this.zones[i];
+    var list = this.zones;
+    for (var i = list.length - 1; i >= 0; i--) {
+      var z = list[i];
+      if (!z.alive) continue;
       z.timer += dt;
       z.tickTimer += dt;
       if (z.tickTimer >= z.tickInterval) {
         z.tickTimer = 0;
-        var enemies = findEnemiesInRadius(z.x, z.y, z.radius);
-        for (var ei = 0; ei < enemies.length; ei++) {
-          damageEnemy(enemies[ei], z.damage);
-        }
+        forEachEnemyInRadius(z.x, z.y, z.radius, function(e) {
+          damageEnemy(e, z.damage);
+        });
       }
-      if (z.timer >= z.lifetime) this.zones.splice(i, 1);
+      if (z.timer >= z.lifetime) z.alive = false;
     }
+    var wi = 0;
+    for (var ri = 0; ri < list.length; ri++) {
+      if (list[ri].alive) list[wi++] = list[ri];
+    }
+    list.length = wi;
   },
 
   _updateVfx: function(dt) {
-    for (var i = this.vfx.length - 1; i >= 0; i--) {
-      var v = this.vfx[i];
+    var list = this.vfx;
+    for (var i = list.length - 1; i >= 0; i--) {
+      var v = list[i];
+      if (!v.alive) continue;
       v.timer += dt;
-      if (v.timer >= v.duration) this.vfx.splice(i, 1);
+      if (v.timer >= v.duration) v.alive = false;
     }
+    var wi = 0;
+    for (var ri = 0; ri < list.length; ri++) {
+      if (list[ri].alive) list[wi++] = list[ri];
+    }
+    list.length = wi;
   },
 
   _renderZones: function(ctx) {
@@ -910,11 +1029,17 @@ var WeaponManager = {
       var z = this.zones[i];
       var alpha = 0.4 * (1 - z.timer / z.lifetime);
       if (alpha < 0) alpha = 0;
-      ctx.fillStyle = 'rgba(100, 180, 255, ' + alpha + ')';
+      var ztype = z.zoneType || 'holyWater';
+      var colors = {
+        holyWater: { fill: '100, 180, 255', stroke: '100, 180, 255' },
+        bora: { fill: '160, 100, 230', stroke: '180, 120, 255' },
+      };
+      var c = colors[ztype] || colors.holyWater;
+      ctx.fillStyle = 'rgba(' + c.fill + ', ' + alpha + ')';
       ctx.beginPath();
       ctx.arc(z.x, z.y, z.radius, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(100, 180, 255, ' + (alpha * 1.5) + ')';
+      ctx.strokeStyle = 'rgba(' + c.stroke + ', ' + (alpha * 1.5) + ')';
       ctx.lineWidth = 2;
       ctx.stroke();
     }
@@ -1040,6 +1165,30 @@ var WeaponManager = {
         ctx.beginPath();
         ctx.arc(v.x, v.y, 60, sa - 0.6, sa + 0.6);
         ctx.stroke();
+      }
+      if (v.type === 'death') {
+        var dprogress = v.timer / v.duration;
+        var dscale = v.scale || 1;
+        var dalphas = 0.7 * (1 - dprogress);
+        for (var di = 0; di < 6; di++) {
+          var dangle = (di / 6) * Math.PI * 2 + v.timer * 4;
+          var ddist = 20 * dscale * dprogress;
+          var dpx = v.x + Math.cos(dangle) * ddist;
+          var dpy = v.y + Math.sin(dangle) * ddist;
+          ctx.fillStyle = 'rgba(200, 200, 200, ' + dalphas + ')';
+          ctx.beginPath(); ctx.arc(dpx, dpy, 2 * dscale * (1 - dprogress + 0.2), 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      if (v.type === 'spark') {
+        var sp = v.timer / v.duration;
+        for (var si = 0; si < 4; si++) {
+          var sa = Math.atan2(v.vy, v.vx) + (si - 1.5) * 0.8;
+          var sd = 15 * sp;
+          var sx = v.x + Math.cos(sa) * sd;
+          var sy = v.y + Math.sin(sa) * sd;
+          ctx.fillStyle = 'rgba(255,255,200,' + (0.8 * (1 - sp)) + ')';
+          ctx.beginPath(); ctx.arc(sx, sy, 3 * (1 - sp) + 1, 0, Math.PI * 2); ctx.fill();
+        }
       }
     }
   },

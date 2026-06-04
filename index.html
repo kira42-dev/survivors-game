@@ -8,7 +8,21 @@
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
+<div id="mainMenu">
+  <div class="menu-content">
+    <div class="menu-title">MYSTIC WOODS</div>
+    <div class="menu-subtitle">SURVIVORS</div>
+    <div class="menu-divider"></div>
+    <button class="menu-btn start-btn" onclick="startGame()">НАЧАТЬ ИГРУ</button>
+    <div class="menu-version">v1.0</div>
+  </div>
+</div>
+
+
 <div id="upgradeOverlay"></div>
+<audio id="menuMusic" src="main menu.mp3" loop></audio>
+<audio id="gameplayMusic" src="gayplay.mp3" loop></audio>
+<audio id="rageMusic" src="make.mp3" loop></audio>
 <script src="player.js"></script>
 <script src="enemy.js"></script>
 <script src="spawner.js"></script>
