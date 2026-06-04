@@ -59,6 +59,18 @@ game/
 
 Open `index.html` in any modern web browser to play. The game works best on desktop browsers but is also playable on mobile devices.
 
+### Запуск через GitHub Pages
+
+1. Перейдите в **Settings → Pages** репозитория
+2. В разделе **Source** выберите **Deploy from a branch**
+3. Branch: `main`, папка: `/ (root)`
+4. Нажмите **Save**
+
+После этого игра будет доступна по адресу:
+```
+https://kira42-dev.github.io/survivors-game/
+```
+
 ## 🔜 Future Plans
 
 - Permanent upgrade system between runs
