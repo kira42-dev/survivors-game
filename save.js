@@ -100,6 +100,10 @@ var SaveManager = {
   openMenu: function() {
     var overlay = document.getElementById('upgradeOverlay');
     if (!overlay) return;
+    var mainMenu = document.getElementById('mainMenu');
+    this._fromMainMenu = mainMenu && mainMenu.style.display !== 'none';
+    if (this._fromMainMenu) mainMenu.style.display = 'none';
+
     var html = '<div class="upgrade-title">УЛУЧШЕНИЯ</div>';
     html += '<div class="meta-coins">Монет: <span id="metaCoinsCount">' + this.data.coins + '</span></div>';
     html += '<div class="upgrade-choices meta-choices">';
@@ -135,6 +139,9 @@ var SaveManager = {
     });
     document.getElementById('metaBackBtn').addEventListener('click', function() {
       overlay.style.display = 'none';
+      if (SaveManager._fromMainMenu) {
+        document.getElementById('mainMenu').style.display = 'flex';
+      }
     });
   },
 };
