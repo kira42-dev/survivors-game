@@ -144,6 +144,7 @@ const Game = {
       vampirism: 'assets/sprites/weapons/vampirism.png',
       nuke: 'assets/sprites/weapons/nuke.png',
       rage: 'assets/sprites/weapons/rage.png',
+      coin: 'assets/sprites/items/coin.png',
     };
     for (const [key, src] of Object.entries(assets)) {
       const img = new Image();
@@ -215,6 +216,7 @@ const Game = {
     Enemy.xpGems.length = 0;
     Enemy.nukeItems.length = 0;
     Enemy.rageItems.length = 0;
+    Enemy.coinItems.length = 0;
     Enemy.pickupParticles.length = 0;
     PassiveManager.reset();
     Spawner.reset();
@@ -375,6 +377,7 @@ const Game = {
     Enemy.renderXpGems(ctx);
     Enemy.renderNukeItems(ctx);
     Enemy.renderRageItems(ctx);
+    Enemy.renderCoinItems(ctx);
     Player.render(ctx);
     ctx.restore();
     if (this.nukeIntensity > 0) {

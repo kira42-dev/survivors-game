@@ -121,6 +121,20 @@ const UI = {
       ctx.fillRect(gx - 1, gy - 1, 2, 2);
     }
 
+    for (var ci = 0; ci < Enemy.coinItems.length; ci++) {
+      var c = Enemy.coinItems[ci];
+      if (!c.alive) continue;
+      var ux = Game.unwrap(c.x, Player.x);
+      var uy = Game.unwrap(c.y, Player.y);
+      var dx = ux - Player.x;
+      var dy = uy - Player.y;
+      if (Math.abs(dx) > worldView || Math.abs(dy) > worldView) continue;
+      var cx = center + dx * scale;
+      var cy = center + dy * scale;
+      ctx.fillStyle = '#fd0';
+      ctx.fillRect(cx - 1.5, cy - 1.5, 3, 3);
+    }
+
     ctx.fillStyle = '#4f4';
     ctx.beginPath();
     ctx.arc(center, center, 3, 0, Math.PI * 2);

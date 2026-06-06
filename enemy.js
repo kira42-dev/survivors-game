@@ -4,6 +4,7 @@ const Enemy = {
   pickupParticles: [],
   nukeItems: [],
   rageItems: [],
+  coinItems: [],
 
   createBoss: function(x, y) {
     return {
@@ -85,6 +86,17 @@ const Enemy = {
       }
     }
     this.rageItems.push(ri);
+  },
+
+  spawnCoinItem(x, y, value) {
+    var ci = { x: x, y: y, value: value, size: 6, bob: 0, alive: true };
+    for (var i = 0; i < this.coinItems.length; i++) {
+      if (!this.coinItems[i].alive) {
+        this.coinItems[i] = ci;
+        return;
+      }
+    }
+    this.coinItems.push(ci);
   },
 
   spawn(x, y, difficulty, type) {
@@ -203,6 +215,43 @@ const Enemy = {
     }
     this.rageItems.length = rw;
 
+    for (let i = this.coinItems.length - 1; i >= 0; i--) {
+      var ci = this.coinItems[i];
+      if (!ci.alive) continue;
+      ci.bob += dt * 3;
+      var cux = Game.unwrap(ci.x, Player.x);
+      var cuy = Game.unwrap(ci.y, Player.y);
+      var cdx = Player.x - cux;
+      var cdy = Player.y - cuy;
+      var cdistSq = cdx * cdx + cdy * cdy;
+      var cpickupRadius = 150 + Player.magnet;
+      if (cdistSq < cpickupRadius * cpickupRadius) {
+        if (cdistSq < 400) {
+          ci.alive = false;
+          for (var ci_pi = 0; ci_pi < 5; ci_pi++) {
+            this.pickupParticles.push({
+              x: ci.x, y: ci.y,
+              vx: (Math.random() - 0.5) * 120,
+              vy: (Math.random() - 0.5) * 120 - 40,
+              life: 0.4, maxLife: 0.4, size: 2 + Math.random() * 2,
+            });
+          }
+        } else {
+          var cdist = Math.sqrt(cdistSq);
+          var cspeed = 300 + Player.magnet * 0.5;
+          ci.x += (cdx / cdist) * cspeed * dt;
+          ci.y += (cdy / cdist) * cspeed * dt;
+          ci.x = Game.wrap(ci.x);
+          ci.y = Game.wrap(ci.y);
+        }
+      }
+    }
+    var cw = 0;
+    for (var cr = 0; cr < this.coinItems.length; cr++) {
+      if (this.coinItems[cr].alive) this.coinItems[cw++] = this.coinItems[cr];
+    }
+    this.coinItems.length = cw;
+
     for (var pi = this.pickupParticles.length - 1; pi >= 0; pi--) {
       var p = this.pickupParticles[pi];
       p.life -= dt;
@@ -223,9 +272,13 @@ const Enemy = {
           if (Math.random() < 0.0005) { Enemy.spawnNukeItem(e.x, e.y); }
           if (Math.random() < 0.0002) { Enemy.spawnRageItem(e.x, e.y); }
           if (e.isBoss) {
-            Player.coinsEarned = (Player.coinsEarned || 0) + 5;
+            var cv = 5;
+            Player.coinsEarned = (Player.coinsEarned || 0) + cv;
+            Enemy.spawnCoinItem(e.x, e.y, cv);
           } else if (Math.random() < 0.2) {
-            Player.coinsEarned = (Player.coinsEarned || 0) + (Math.random() < 0.1 ? 3 : 1);
+            var cv = Math.random() < 0.1 ? 3 : 1;
+            Player.coinsEarned = (Player.coinsEarned || 0) + cv;
+            Enemy.spawnCoinItem(e.x, e.y, cv);
           }
         }
         continue;
@@ -341,6 +394,37 @@ const Enemy = {
         ctx.lineTo(ri.x + 8, ri.y + bob);
         ctx.lineTo(ri.x, ri.y + 10 + bob);
         ctx.lineTo(ri.x - 8, ri.y + bob);
+        ctx.closePath();
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  },
+
+  renderCoinItems: function(ctx) {
+    for (var i = 0; i < this.coinItems.length; i++) {
+      var ci = this.coinItems[i];
+      if (!ci.alive) continue;
+      var rx = Game.unwrap(ci.x, Player.x);
+      var ry = Game.unwrap(ci.y, Player.y);
+      var bob = Math.sin(ci.bob) * 2;
+      ctx.save();
+      ctx.translate(rx - ci.x, ry - ci.y);
+      ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
+      ctx.beginPath();
+      ctx.arc(ci.x, ci.y + bob, 10, 0, Math.PI * 2);
+      ctx.fill();
+      var sprite = Game.sprites.coin;
+      if (sprite && sprite.width > 0) {
+        ctx.drawImage(sprite, ci.x - 8, ci.y - 8 + bob, 16, 16);
+      } else {
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(ci.x, ci.y + bob, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#daa520';
+        ctx.beginPath();
+        ctx.arc(ci.x, ci.y + bob, 5, 0, Math.PI);
         ctx.closePath();
         ctx.fill();
       }
