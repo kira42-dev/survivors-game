@@ -217,22 +217,25 @@ const UI = {
       });
     }
 
-    // Add unowned non-evolved weapons
-    for (var key in WEAPON_FACTORIES) {
-      if (key === 'holyMissile' || key === 'bloodyTear' ||
-          key === 'thousandEdge' || key === 'hellfire' || key === 'bora' ||
-          key === 'loop') continue;
-      if (!WeaponManager.hasWeapon(key)) {
-        var def = WEAPON_FACTORIES[key]();
-        pool.push({ type: 'weaponNew', id: key, name: def.nameRu, icon: '\u2694', desc: 'Новое оружие', _sprite: WEAPON_SPRITE_MAP[key] });
+    // Add unowned non-evolved weapons (only if under limit)
+    if (WeaponManager.weapons.length < WeaponManager.MAX_WEAPONS) {
+      for (var key in WEAPON_FACTORIES) {
+        if (key === 'holyMissile' || key === 'bloodyTear' ||
+            key === 'thousandEdge' || key === 'hellfire' || key === 'bora' ||
+            key === 'loop') continue;
+        if (!WeaponManager.hasWeapon(key)) {
+          var def = WEAPON_FACTORIES[key]();
+          pool.push({ type: 'weaponNew', id: key, name: def.nameRu, icon: '\u2694', desc: 'Новое оружие', _sprite: WEAPON_SPRITE_MAP[key] });
+        }
       }
     }
 
-    // Add passive items
+    // Add passive items (only allow new if under limit)
     for (var pid in PASSIVE_DEFS) {
       var pdef = PASSIVE_DEFS[pid];
       var passiveSprite = PASSIVE_SPRITE_MAP[pid] || null;
       if (!PassiveManager.has(pid)) {
+        if (PassiveManager.items.length >= PassiveManager.MAX_PASSIVES) continue;
         pool.push({ type: 'passive', id: pid, name: pdef.nameRu, icon: '\u25C8', desc: passDescRu(pdef), _sprite: passiveSprite });
       } else if (!PassiveManager.isMaxed(pid)) {
         var level = PassiveManager.getLevel(pid);
@@ -294,6 +297,8 @@ const UI = {
     if (rage) { rage.pause(); rage.currentTime = 0; }
     var menu = document.getElementById('menuMusic');
     if (menu) { menu.currentTime = 0; menu.play(); }
+    var coins = Player.coinsEarned || 0;
+    if (coins > 0) SaveManager.addCoins(coins);
     const mins = Math.floor(this.gameTime / 60);
     const secs = Math.floor(this.gameTime % 60);
     overlay.innerHTML = `<div class="gameover-title">GAME OVER</div>
@@ -301,13 +306,19 @@ const UI = {
         <div>Survived: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}</div>
         <div>Kills: ${Player.kills}</div>
         <div>Level: ${Player.level}</div>
+        <div style="color:#ffe040;margin-top:8px;">Монет заработано: ${coins}</div>
+        <div style="color:#8f8;font-size:14px;">Всего монет: ${SaveManager.data.coins}</div>
       </div>
-      <button class="restart-btn" id="restartBtn">RESTART</button>
+      <button class="restart-btn" id="restartBtn">ЕЩЁ РАЗ</button>
+      <button class="restart-btn menu-btn" id="upgradeBtn" style="margin-top:10px;background:#b08020;border-color:#ffe040;">УЛУЧШЕНИЯ</button>
       <button class="restart-btn menu-btn" id="menuBtn" style="margin-top:10px;background:#333;border-color:#666;">ГЛАВНОЕ МЕНЮ</button>`;
     overlay.style.display = 'flex';
     document.getElementById('restartBtn').addEventListener('click', () => {
       overlay.style.display = 'none';
       Game.reset();
+    });
+    document.getElementById('upgradeBtn').addEventListener('click', () => {
+      SaveManager.openMenu();
     });
     document.getElementById('menuBtn').addEventListener('click', () => {
       overlay.style.display = 'none';

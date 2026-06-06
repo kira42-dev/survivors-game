@@ -2,23 +2,44 @@ const Spawner = {
   elapsedTime: 0,
   timer: 0,
   baseInterval: 0.8,
-  minInterval: 0.4,
-  decreaseRate: 0.01,
+  minInterval: 0.35,
+  decreaseRate: 0.008,
   groupBase: 1,
-  groupInterval: 15,
+  groupInterval: 20,
   bossTimer: 0,
-  bossInterval: 60,
+  bossInterval: 90,
+  _lastWaveMinute: -1,
   rageMul: 1,
+  enemyCycleTime: 0,
+
+  getEnemyType: function(t) {
+    var minute = Math.floor(t / 60);
+    var phase = minute % 3;
+    if (phase === 0) return 'slime';
+    if (phase === 1) return Math.random() < 0.5 ? 'slime' : 'bat';
+    return 'bat';
+  },
 
   reset() {
     this.elapsedTime = 0;
     this.timer = 0;
     this.bossTimer = 0;
     this.rageMul = 1;
+    this._lastWaveMinute = -1;
   },
 
   update(dt) {
     this.elapsedTime += dt;
+    this.enemyCycleTime = this.elapsedTime;
+
+    var currentMinute = Math.floor(this.elapsedTime / 60);
+    if (currentMinute !== this._lastWaveMinute) {
+      this._lastWaveMinute = currentMinute;
+      var typeName = this.getEnemyType(this.elapsedTime) === 'slime' ? 'Слаймы' : 'Летучие мыши';
+      var phase = currentMinute % 3;
+      var waveName = phase === 0 ? 'СЛАЙМЫ' : phase === 1 ? 'СМЕШАННАЯ ВОЛНА' : 'ЛЕТУЧИЕ МЫШИ';
+      UI.showMessage('Волна ' + (currentMinute + 1) + ': ' + waveName, 2.5);
+    }
 
     // Boss spawn (runs independently of regular spawn timer)
     this.bossTimer += dt;
@@ -69,7 +90,7 @@ const Spawner = {
       const timeDiff = Math.floor(this.elapsedTime / 8);
       const levelDiff = Math.floor(Player.level * 0.25);
       const difficulty = timeDiff + levelDiff;
-      var type = Math.random() < 0.5 ? 'slime' : 'bat';
+      var type = Spawner.getEnemyType(this.elapsedTime);
       Enemy.spawn(x, y, difficulty, type);
     }
   },

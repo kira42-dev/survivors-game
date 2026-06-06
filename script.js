@@ -1,10 +1,14 @@
 Game.init();
 Player.init();
 Game.loadAssets();
+SaveManager.load();
 
 document.addEventListener('DOMContentLoaded', function() {
   var menuMusic = document.getElementById('menuMusic');
   if (menuMusic) menuMusic.play();
+  document.getElementById('metaUpgradeBtn').addEventListener('click', function() {
+    SaveManager.openMenu();
+  });
 });
 
 function startGame() {

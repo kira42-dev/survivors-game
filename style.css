@@ -202,3 +202,64 @@ canvas {
   letter-spacing: 2px;
 }
 
+/* ===== Meta Upgrades ===== */
+.meta-choices {
+  max-width: 700px;
+}
+
+.meta-card {
+  background: rgba(30,20,50,0.9);
+  border: 2px solid rgba(255,224,64,0.3);
+  border-radius: 10px;
+  padding: 16px 20px;
+  width: 130px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.meta-card:hover {
+  background: rgba(50,30,70,0.9);
+  border-color: #ffe040;
+  transform: scale(1.05);
+}
+
+.meta-card-name {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.meta-card-desc {
+  font-size: 11px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.meta-card-level {
+  font-size: 11px;
+  color: #8cf;
+  margin-bottom: 8px;
+}
+
+.meta-card-cost {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffe040;
+}
+
+.meta-card-cost.too-expensive {
+  color: #844;
+}
+
+.meta-card-cost.maxed {
+  color: #4f4;
+}
+
+.meta-coins {
+  font-size: 22px;
+  color: #ffe040;
+  margin-bottom: 20px;
+  text-shadow: 0 0 10px rgba(255,224,64,0.3);
+}
+

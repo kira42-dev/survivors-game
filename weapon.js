@@ -661,6 +661,7 @@ var WeaponManager = {
   vfx: [],
   zones: [],
   globalDamage: 0,
+  MAX_WEAPONS: 6,
 
   reset: function() {
     this.weapons.length = 0;
@@ -680,6 +681,7 @@ var WeaponManager = {
 
   addWeapon: function(id) {
     if (this.hasWeapon(id)) return;
+    if (this.weapons.length >= this.MAX_WEAPONS) return;
     var fn = WEAPON_FACTORIES[id];
     if (fn) this.weapons.push(fn());
   },

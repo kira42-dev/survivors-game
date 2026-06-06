@@ -242,6 +242,9 @@ const Game = {
     Player.hp = Player.maxHp;
     Player.x = 1500;
     Player.y = 1500;
+    Player.coinsEarned = 0;
+    Player._revives = 0;
+    SaveManager.applyToPlayer();
     UI.reset();
     this.nukeIntensity = 0;
     this.shakeTimer = 0;

@@ -124,6 +124,13 @@ const Player = {
     if (this.invuln) return;
     this.hp -= amount;
     if (this.hp <= 0) {
+      if (this._revives > 0) {
+        this._revives--;
+        this.hp = Math.ceil(this.maxHp / 2);
+        this.invuln = true;
+        setTimeout(function() { if (Player) Player.invuln = false; }, 2000);
+        return;
+      }
       this.hp = 0;
       this.dead = true;
       Game.state = 'GAME_OVER';

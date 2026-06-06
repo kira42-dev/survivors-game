@@ -222,6 +222,11 @@ const Enemy = {
           Enemy.spawnXpGem(e.x, e.y, e.xp);
           if (Math.random() < 0.0005) { Enemy.spawnNukeItem(e.x, e.y); }
           if (Math.random() < 0.0002) { Enemy.spawnRageItem(e.x, e.y); }
+          if (e.isBoss) {
+            Player.coinsEarned = (Player.coinsEarned || 0) + 5;
+          } else if (Math.random() < 0.2) {
+            Player.coinsEarned = (Player.coinsEarned || 0) + (Math.random() < 0.1 ? 3 : 1);
+          }
         }
         continue;
       }

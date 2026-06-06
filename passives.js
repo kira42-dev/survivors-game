@@ -34,6 +34,7 @@ var PASSIVE_SPRITE_MAP = {
 
 var PassiveManager = {
   items: [],
+  MAX_PASSIVES: 6,
 
   reset() {
     for (var i = 0; i < this.items.length; i++) {
@@ -78,6 +79,7 @@ var PassiveManager = {
     var item = this.get(id);
     var def = PASSIVE_DEFS[id];
     if (!def) return;
+    if (!item && this.items.length >= this.MAX_PASSIVES) return;
     if (item) {
       if (item.level >= def.maxLevel) return;
       item.level++;
