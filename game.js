@@ -191,7 +191,6 @@ const Game = {
     this.camera.x = Player.x - this.width / 2;
     this.camera.y = Player.y - this.height / 2;
     this.generateDecorations();
-    Enemy.spawnRageItem(Player.x + 80, Player.y);
     this.lastTime = performance.now();
     if (!this._started) {
       this._started = true;
