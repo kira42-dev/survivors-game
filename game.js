@@ -102,6 +102,13 @@ const Game = {
     return (h ^ (h >> 16)) & 0x7fffffff;
   },
 
+  _updateLoadingBar(pct) {
+    var bar = document.getElementById('loadingBar');
+    if (bar) bar.style.width = pct + '%';
+    var txt = document.getElementById('loadingProgress');
+    if (txt) txt.textContent = pct + '%';
+  },
+
   loadAssets() {
     this.state = 'LOADING';
     this.loadedAssets = 0;
@@ -153,8 +160,14 @@ const Game = {
     this.totalAssets = Object.keys(assets).length;
     for (const [key, src] of Object.entries(assets)) {
       const img = new Image();
-      img.onload = () => { this.loadedAssets++; };
-      img.onerror = () => { this.loadedAssets++; };
+      img.onload = () => {
+        this.loadedAssets++;
+        this._updateLoadingBar(Math.floor((this.loadedAssets / this.totalAssets) * 100));
+      };
+      img.onerror = () => {
+        this.loadedAssets++;
+        this._updateLoadingBar(Math.floor((this.loadedAssets / this.totalAssets) * 100));
+      };
       img.src = src;
       this.sprites[key] = img;
     }

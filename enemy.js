@@ -6,6 +6,14 @@ const Enemy = {
   rageItems: [],
   coinItems: [],
 
+  aliveCount() {
+    var n = 0;
+    for (var i = 0; i < this.list.length; i++) {
+      if (this.list[i].alive) n++;
+    }
+    return n;
+  },
+
   createBoss: function(x, y) {
     return {
       x: x, y: y, type: 'boss', isBoss: true,
@@ -56,6 +64,24 @@ const Enemy = {
   },
 
   spawnXpGem(x, y, value) {
+    var MAX_GEMS = 300;
+    var alive = 0;
+    for (var gi = 0; gi < this.xpGems.length; gi++) {
+      if (this.xpGems[gi].alive) alive++;
+    }
+    if (alive >= MAX_GEMS) {
+      var best = -1, bestDist = 2500;
+      for (var gi = 0; gi < this.xpGems.length; gi++) {
+        if (!this.xpGems[gi].alive) continue;
+        var dx = this.xpGems[gi].x - x, dy = this.xpGems[gi].y - y;
+        var d = dx * dx + dy * dy;
+        if (d < bestDist) { bestDist = d; best = gi; }
+      }
+      if (best >= 0 && bestDist <= 50 * 50) {
+        this.xpGems[best].value += value;
+      }
+      return;
+    }
     var g = { x: x, y: y, value: value, size: 6, bob: 0, alive: true };
     for (var i = 0; i < this.xpGems.length; i++) {
       if (!this.xpGems[i].alive) {
@@ -257,7 +283,11 @@ const Enemy = {
     for (var pi = this.pickupParticles.length - 1; pi >= 0; pi--) {
       var p = this.pickupParticles[pi];
       p.life -= dt;
-      if (p.life <= 0) { this.pickupParticles.splice(pi, 1); continue; }
+      if (p.life <= 0) {
+        this.pickupParticles[pi] = this.pickupParticles[this.pickupParticles.length - 1];
+        this.pickupParticles.pop();
+        continue;
+      }
       p.x += p.vx * dt;
       p.y += p.vy * dt;
       p.vy += 200 * dt;
@@ -311,6 +341,14 @@ const Enemy = {
     }
     var ew = 0;
     for (var er = 0; er < this.list.length; er++) {
+      if (this.list[er].alive) {
+        var ecx = Game.unwrap(this.list[er].x, Player.x);
+        var ecy = Game.unwrap(this.list[er].y, Player.y);
+        var edx = Player.x - ecx, edy = Player.y - ecy;
+        if (edx * edx + edy * edy > 2000 * 2000) {
+          this.list[er].alive = false;
+        }
+      }
       if (this.list[er].alive) this.list[ew++] = this.list[er];
     }
     this.list.length = ew;
@@ -322,17 +360,14 @@ const Enemy = {
       var rx = Game.unwrap(g.x, Player.x);
       var ry = Game.unwrap(g.y, Player.y);
       var bob = Math.sin(g.bob) * 2;
-      ctx.save();
-      ctx.translate(rx - g.x, ry - g.y);
       ctx.fillStyle = 'rgba(50, 255, 100, 0.8)';
       ctx.beginPath();
-      ctx.arc(g.x, g.y + bob, g.size + 1, 0, Math.PI * 2);
+      ctx.arc(rx, ry + bob, g.size + 1, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = 'rgba(180, 255, 180, 0.6)';
       ctx.beginPath();
-      ctx.arc(g.x - 1, g.y - 1 + bob, g.size * 0.5, 0, Math.PI * 2);
+      ctx.arc(rx - 1, ry - 1 + bob, g.size * 0.5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
     }
     for (var pi = 0; pi < this.pickupParticles.length; pi++) {
       var p = this.pickupParticles[pi];

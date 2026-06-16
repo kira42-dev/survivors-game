@@ -2,7 +2,7 @@ const Spawner = {
   elapsedTime: 0,
   timer: 0,
   baseInterval: 0.8,
-  minInterval: 0.35,
+  minInterval: 0.5,
   decreaseRate: 0.008,
   groupBase: 1,
   groupInterval: 20,
@@ -62,7 +62,9 @@ const Spawner = {
     const interval = Math.max(this.minInterval, this.baseInterval - this.elapsedTime * this.decreaseRate);
     if (this.timer < interval) return;
     this.timer -= interval;
-    const groupSize = this.groupBase + Math.floor(this.elapsedTime / this.groupInterval);
+    const ENEMY_LIMIT = 200;
+    if (Enemy.aliveCount() >= ENEMY_LIMIT) return;
+    const groupSize = Math.min(8, this.groupBase + Math.floor(this.elapsedTime / this.groupInterval));
     for (let i = 0; i < groupSize; i++) {
       let x, y;
       var attempts = 0;
