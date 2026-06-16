@@ -3,6 +3,7 @@ Player.init();
 Touch.init();
 Game.loadAssets();
 SaveManager.load();
+if (typeof YandexSDK !== 'undefined') YandexSDK.init();
 
 function checkLoading() {
   if (Game.state !== 'LOADING') return;

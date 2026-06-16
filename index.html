@@ -34,9 +34,18 @@
 <audio id="menuMusic" src="menu.mp3" loop></audio>
 <audio id="gameplayMusic" src="menu.mp3" loop></audio>
 <audio id="rageMusic" src="make.mp3" loop></audio>
+<script>
+window.onerror = function(msg, url, line) {
+  var errDiv = document.createElement('div');
+  errDiv.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#c00;color:#fff;padding:8px;font:12px monospace;z-index:999;';
+  errDiv.textContent = 'Error: ' + msg + ' (' + url + ':' + line + ')';
+  document.body.appendChild(errDiv);
+};
+</script>
 <script src="player.js"></script>
 <script src="touch.js"></script>
 <script src="audio.js"></script>
+<script src="yandex.js"></script>
 <script src="enemy.js"></script>
 <script src="spawner.js"></script>
 <script src="weapon.js"></script>

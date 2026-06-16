@@ -1,85 +1,56 @@
 # Mystic Woods Survivors
 
-A vampire survivors-inspired game with toroidal (wrap-around) world mechanics, pixel-art graphics, and local multiplayer-ready design.
+**Vampire Survivors-like** на чистом JavaScript + Canvas API.  
+Выживайте среди волн монстров, собирайте опыт, улучшайте оружие и проходите всё более сложные волны.
 
-## 🎮 Game Overview
+▶️ [Играть на GitHub Pages](https://kira42-dev.github.io/survivors-game/)  
+🖥️ Или просто открой `index.html` в браузере
 
-Mystic Woods Survivors is a fast-paced action roguelite where you survive endless waves of monsters by collecting experience, leveling up, and choosing powerful upgrades. The game features a unique wrapping world mechanic where the map edges connect like a torus (donut), creating interesting strategic possibilities for positioning and combat.
+## 🛠️ Технологии
 
-## 🌟 Features
+| Технология | Применение |
+|---|---|
+| **Canvas API** | Рендеринг игрового мира, спрайтов, VFX |
+| **Vanilla JS** | Без фреймворков и зависимостей |
+| **Collision Detection** | Дистанционная проверка коллизий между игроком, врагами и снарядами |
+| **Sprite System** | Покадровая анимация из спрайт-листов с направлением движения |
+| **Web Audio API** | Программная генерация ретро-звуков (без внешних файлов) |
+| **Toroidal World** | Зацикленная карта (wrap/unwrap) |
+| **localStorage** | Сохранение прогресса между забегами |
 
-- **Toroidal World**: The game world wraps both horizontally and vertically - move off one edge and appear on the opposite side
-- **16 Unique Weapons**: Each with distinct mechanics and upgrade paths
-- **11 Passive Items**: Stat boosts that synergize with your weapons
-- **Pixel Art Graphics**: Custom 32x32 pixel-art sprites for all weapons and passives
-- **Progressive Difficulty**: Increasingly challenging enemy waves with bosses
-- **Local Co-op Ready**: Designed for easy addition of second player
-- **Responsive Design**: Works on desktop and mobile browsers
+## 📸 Скриншот
 
-## 🎯 How to Play
+![Gameplay](assets/screenshot.png)
 
-1. Move your character with WASD or arrow keys
-2. Weapons auto-fire at nearby enemies
-3. Collect experience gems from defeated enemies to level up
-4. Choose upgrades when you level up to enhance your build
-5. Survive as long as possible against increasingly difficult waves
-6. When you die, spend collected gold on permanent upgrades (future feature)
+(Сделать скриншот: `Win+Shift+S` во время игры, сохранить как `assets/screenshot.png`)
 
-## 🛠️ Development
+## 🎯 Как играть
 
-This game was built with vanilla JavaScript and HTML5 Canvas. No external dependencies or frameworks were used.
+- **Desktop**: WASD / стрелки — движение, оружие атакует автоматически
+- **Mobile**: Виртуальный джойстик в левом нижнем углу
+- Собирайте зелёные сферы опыта, чтобы повышать уровень
+- На каждом уровне выбирайте улучшение (оружие / пассивка / эволюция)
+- Выживайте как можно дольше
 
-### Project Structure
+## 💭 Что я узнал
 
-```
-game/
-├── index.html          # Main HTML file
-├── style.css           # All styling
-├── script.js           # Game initialization and UI
-├── player.js           # Player logic
-├── enemy.js            # Enemy AI and behavior
-├── spawner.js          # Enemy spawning system
-├── weapon.js           # Weapon systems and attacks
-├── passives.js         # Passive item systems
-├── ui.js               # Rendering and visual effects
-└── assets/
-    └── sprites/
-        └── weapons/    # All weapon and passive pixel-art (33 sprites)
-```
+- **Игровой цикл с фиксированным шагом**: `requestAnimationFrame` + аккумулятор для детерминированной физики
+- **Тороидальная геометрия**: `Game.wrap()` / `Game.unwrap()` для бесшовного мира 3000×3000
+- **Паттерн «Фабрика»** для системы оружия — 15+ вариаций без дублирования кода
+- **Система коллизий**: дистанционные проверки с учётом wrapping'a мира
+- **Sprite animation**: спрайт-листы с направлением движения (4 направления + idle + death)
+- **Web Audio API**: синтез ретро-звуков без внешних аудиофайлов
+- **Яндекс SDK**: интеграция рекламы (interstitial, rewarded video) с graceful fallback
 
-### Key Technical Features
+## 🔄 Что бы я сделал иначе
 
-- **Toroidal Math**: Custom `Game.wrap()` and `Game.unwrap()` functions handle world wrapping
-- **Entity Management**: All game objects (player, enemies, projectiles) managed in centralized lists
-- **Weapon Factory Pattern**: Each weapon is defined as a factory function returning configuration object
-- **Passive Synergy System**: Items grant stat bonuses and can trigger weapon evolutions
-- **Visual Effects**: Particle systems, screen shake, and Flash effects for impact
-
-## 📱 Play Now
-
-Open `index.html` in any modern web browser to play. The game works best on desktop browsers but is also playable on mobile devices.
-
-### Запуск через GitHub Pages
-
-1. Перейдите в **Settings → Pages** репозитория
-2. В разделе **Source** выберите **Deploy from a branch**
-3. Branch: `main`, папка: `/ (root)`
-4. Нажмите **Save**
-
-После этого игра будет доступна по адресу:
-```
-https://kira42-dev.github.io/survivors-game/
-```
-
-## 🔜 Future Plans
-
-- Permanent upgrade system between runs
-- Additional characters with unique starting loadouts
-- More enemy types and boss battles
-- Local two-player co-op mode
-- Soundtrack and enhanced audio effects
-- Leaderboards and achievements
+- **Пространственное разделение** (quadtree / grid) для коллизий — на поздних этапах игра проседает из-за O(n²) проверок каждый кадр
+- **Конфиги в JSON** — данные оружия и врагов сейчас размазаны по коду, вынес бы в отдельные файлы
+- **Рефакторинг `weapon.js`** (1197 строк) на отдельные модули по типам оружия
+- **State Machine для анимаций** вместо сырых таймеров
+- **TypeScript** — отловил бы кучу багов с типами на старте
+- **Звуковая система** — добавил бы больше вариаций звуков и каналов для одновременного воспроизведения
 
 ---
 
-*Mystic Woods Survivors v1.0*
+*Mystic Woods Survivors* — [kira42-dev](https://github.com/kira42-dev)

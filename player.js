@@ -146,4 +146,14 @@ const Player = {
       UI.showGameOver();
     }
   },
+
+  adRevive() {
+    this.dead = false;
+    this.hp = Math.ceil(this.maxHp / 2);
+    this.invuln = true;
+    setTimeout(() => { if (Player) Player.invuln = false; }, 2000);
+    Game.state = 'PLAYING';
+    var gp = document.getElementById('gameplayMusic');
+    if (gp) { gp.currentTime = 0; gp.play(); }
+  },
 };

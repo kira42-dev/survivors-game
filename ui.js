@@ -329,6 +329,7 @@ const UI = {
     if (coins > 0) SaveManager.addCoins(coins);
     const mins = Math.floor(this.gameTime / 60);
     const secs = Math.floor(this.gameTime % 60);
+    var hasAdRevive = typeof YandexSDK !== 'undefined' && YandexSDK.ready;
     overlay.innerHTML = `<div class="gameover-title">GAME OVER</div>
       <div class="gameover-stats">
         <div>Survived: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}</div>
@@ -337,10 +338,21 @@ const UI = {
         <div style="color:#ffe040;margin-top:8px;">Монет заработано: ${coins}</div>
         <div style="color:#8f8;font-size:14px;">Всего монет: ${SaveManager.data.coins}</div>
       </div>
+      ${hasAdRevive ? '<button class="restart-btn" id="adReviveBtn" style="background:#2a6;border-color:#4f8;">ВОСКРЕСНУТЬ (реклама)</button>' : ''}
       <button class="restart-btn" id="restartBtn">ЕЩЁ РАЗ</button>
       <button class="restart-btn menu-btn" id="upgradeBtn" style="margin-top:10px;background:#b08020;border-color:#ffe040;">УЛУЧШЕНИЯ</button>
       <button class="restart-btn menu-btn" id="menuBtn" style="margin-top:10px;background:#333;border-color:#666;">ГЛАВНОЕ МЕНЮ</button>`;
     overlay.style.display = 'flex';
+    if (hasAdRevive) {
+      document.getElementById('adReviveBtn').addEventListener('click', function() {
+        YandexSDK.showRewarded(function(success) {
+          if (success) {
+            overlay.style.display = 'none';
+            Player.adRevive();
+          }
+        });
+      });
+    }
     document.getElementById('restartBtn').addEventListener('click', () => {
       overlay.style.display = 'none';
       Game.reset();
@@ -352,5 +364,8 @@ const UI = {
       overlay.style.display = 'none';
       document.getElementById('mainMenu').style.display = 'flex';
     });
+    if (typeof YandexSDK !== 'undefined' && YandexSDK.ready) {
+      YandexSDK.showInterstitial();
+    }
   },
 };
