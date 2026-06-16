@@ -75,49 +75,69 @@ const UI = {
   },
 
   drawEquipment(ctx) {
-    var x = Game.width - 16;
-    var y = 16;
-    var iconSize = 28;
-    var gap = 4;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'top';
-    ctx.font = '10px monospace';
+    var weapons = typeof WeaponManager !== 'undefined' ? WeaponManager.weapons : [];
+    var passives = typeof PassiveManager !== 'undefined' ? PassiveManager.items : [];
+    if (weapons.length === 0 && passives.length === 0) return;
 
-    // Weapons row
-    var weapons = WeaponManager.weapons;
+    var iconSize = 32;
+    var gap = 6;
+    var padX = 10;
+    var padY = 8;
+    var maxCount = Math.max(weapons.length, passives.length);
+    var panelW = maxCount * (iconSize + gap) + padX * 2 - gap;
+    var panelH = (weapons.length > 0 && passives.length > 0 ? 2 : 1) * (iconSize + gap) + padY * 2 - gap;
+    var x = Game.width - 16 - panelW;
+    var y = 16;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(x, y, panelW, panelH);
+
+    var drawX = x + padX;
+    var drawY = y + padY;
+
     for (var wi = 0; wi < weapons.length; wi++) {
       var w = weapons[wi];
-      var sx = x - (weapons.length - wi) * (iconSize + gap) + gap;
-      var sy = y;
-      var spriteKey = WEAPON_SPRITE_MAP[w.id];
+      var sx = drawX + wi * (iconSize + gap);
+      var sy = drawY;
+      var smap = typeof WEAPON_SPRITE_MAP !== 'undefined' ? WEAPON_SPRITE_MAP : {};
+      var spriteKey = smap[w.id];
       var img = spriteKey ? Game.sprites[spriteKey] : null;
       if (img && img.width > 0) {
         ctx.drawImage(img, sx, sy, iconSize, iconSize);
       } else {
-        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
         ctx.fillRect(sx, sy, iconSize, iconSize);
       }
       ctx.fillStyle = '#ffe040';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
       ctx.fillText(w.level + '/' + w.maxLevel, sx + iconSize - 2, sy + iconSize - 2);
     }
 
-    // Passives row below
-    var passives = PassiveManager.items;
-    y += iconSize + 6;
-    for (var pi = 0; pi < passives.length; pi++) {
-      var p = passives[pi];
-      var sx = x - (passives.length - pi) * (iconSize + gap) + gap;
-      var sy = y;
-      var spriteKey = PASSIVE_SPRITE_MAP[p.id];
-      var img = spriteKey ? Game.sprites[spriteKey] : null;
-      if (img && img.width > 0) {
-        ctx.drawImage(img, sx, sy, iconSize, iconSize);
-      } else {
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
-        ctx.fillRect(sx, sy, iconSize, iconSize);
+    if (passives.length > 0) {
+      drawY += iconSize + gap;
+      for (var pi = 0; pi < passives.length; pi++) {
+        var p = passives[pi];
+        var sx = drawX + pi * (iconSize + gap);
+        var sy = drawY;
+        var pmap = typeof PASSIVE_SPRITE_MAP !== 'undefined' ? PASSIVE_SPRITE_MAP : {};
+        var spriteKey = pmap[p.id];
+        var img = spriteKey ? Game.sprites[spriteKey] : null;
+        if (img && img.width > 0) {
+          ctx.drawImage(img, sx, sy, iconSize, iconSize);
+        } else {
+          ctx.fillStyle = 'rgba(255,255,255,0.15)';
+          ctx.fillRect(sx, sy, iconSize, iconSize);
+        }
+        ctx.fillStyle = '#8cf';
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        var pdefs = typeof PASSIVE_DEFS !== 'undefined' ? PASSIVE_DEFS : {};
+        var maxLv = pdefs[p.id] ? pdefs[p.id].maxLevel : '?';
+        ctx.fillText(p.level + '/' + maxLv, sx + iconSize - 2, sy + iconSize - 2);
       }
-      ctx.fillStyle = '#8cf';
-      ctx.fillText(p.level + '/' + PASSIVE_DEFS[p.id].maxLevel, sx + iconSize - 2, sy + iconSize - 2);
     }
   },
 
