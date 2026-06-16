@@ -411,6 +411,7 @@ const Game = {
       ctx.fillRect(0, 0, this.width, this.height);
     }
     UI.render(ctx);
+    Touch.render(ctx);
   },
 
     renderMap(ctx) {

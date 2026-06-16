@@ -1,5 +1,6 @@
 Game.init();
 Player.init();
+Touch.init();
 Game.loadAssets();
 SaveManager.load();
 

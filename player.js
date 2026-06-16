@@ -49,6 +49,10 @@ const Player = {
     if (this.keys['s'] || this.keys['arrowdown']) dy = 1;
     if (this.keys['a'] || this.keys['arrowleft']) dx = -1;
     if (this.keys['d'] || this.keys['arrowright']) dx = 1;
+    if (Touch && Touch.active) {
+      dx = Touch.dx;
+      dy = Touch.dy;
+    }
     this.moving = dx !== 0 || dy !== 0;
     if (this.moving) {
       const len = Math.sqrt(dx * dx + dy * dy);

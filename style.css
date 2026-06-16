@@ -58,6 +58,21 @@ canvas {
   transition: all 0.2s;
 }
 
+@media (hover: none) and (pointer: coarse) {
+  #upgradeOverlay .upgrade-card {
+    width: 140px;
+    padding: 14px 16px;
+  }
+  .restart-btn {
+    padding: 18px 48px;
+    font-size: 22px;
+  }
+  .menu-btn {
+    padding: 20px 0;
+    font-size: 20px;
+  }
+}
+
 #upgradeOverlay .upgrade-card:hover {
   background: rgba(60,40,80,0.9);
   border-color: #ffe040;
