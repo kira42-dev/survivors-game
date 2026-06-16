@@ -87,6 +87,14 @@ const Player = {
       ctx.fillRect(this.x - 12, this.y - 12, 24, 24);
       return;
     }
+    // Level glow
+    if (this.level >= 15) {
+      var pulse = 0.12 + Math.sin(performance.now() / 400) * 0.06;
+      ctx.fillStyle = this.level > 25 ? 'rgba(255, 170, 0, ' + pulse + ')' : 'rgba(68, 136, 255, ' + pulse + ')';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.level > 25 ? 40 : 28, 0, Math.PI * 2);
+      ctx.fill();
+    }
     const fw = 48, fh = 48;
     let row, flipped = false;
 

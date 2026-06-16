@@ -5,6 +5,7 @@ const Enemy = {
   nukeItems: [],
   rageItems: [],
   coinItems: [],
+  chestItems: [],
 
   aliveCount() {
     var n = 0;
@@ -35,20 +36,22 @@ const Enemy = {
     const eliteSpdMul = isElite ? 1.3 : 1;
     const eliteXpMul = isElite ? 1.5 : 1;
     const eliteSizeMul = isElite ? 1.4 : 1;
+    var isBomber = type === 'bomber';
     return {
       x, y, type,
-      hp: Math.ceil(2 * hpMul * eliteHpMul),
-      maxHp: Math.ceil(2 * hpMul * eliteHpMul),
-      speed: (55 + Math.random() * 10) * eliteSpdMul,
+      hp: Math.ceil((isBomber ? 5 : 2) * hpMul * eliteHpMul),
+      maxHp: Math.ceil((isBomber ? 5 : 2) * hpMul * eliteHpMul),
+      speed: (isBomber ? 35 : 55 + Math.random() * 10) * eliteSpdMul,
       xp: Math.ceil((1 + Math.floor(difficulty / 3)) * eliteXpMul),
-      width: Math.ceil((type === 'bat' ? 16 : 32) * eliteSizeMul),
-      height: Math.ceil((type === 'bat' ? 24 : 32) * eliteSizeMul),
+      width: Math.ceil((isBomber ? 36 : (type === 'bat' ? 16 : 32)) * eliteSizeMul),
+      height: Math.ceil((isBomber ? 36 : (type === 'bat' ? 24 : 32)) * eliteSizeMul),
       dir: 0,
       animFrame: 0,
       animTimer: 0,
       alive: true,
       dying: false, deathTimer: 0,
       isElite: isElite,
+      isBomber: isBomber,
     };
   },
 
@@ -123,6 +126,17 @@ const Enemy = {
       }
     }
     this.coinItems.push(ci);
+  },
+
+  spawnChest(x, y) {
+    var c = { x: x, y: y, alive: true, bob: 0, opened: false };
+    for (var i = 0; i < this.chestItems.length; i++) {
+      if (!this.chestItems[i].alive) {
+        this.chestItems[i] = c;
+        return;
+      }
+    }
+    this.chestItems.push(c);
   },
 
   spawn(x, y, difficulty, type) {
@@ -301,7 +315,8 @@ const Enemy = {
           e.alive = false;
           Player.kills++;
           if (typeof Audio !== 'undefined') Audio.play(e.isBoss ? 'explosion' : 'hit');
-          Enemy.spawnXpGem(e.x, e.y, e.xp);
+          var xpMul = (typeof Spawner !== 'undefined' && Spawner._xpMul) || 1;
+          Enemy.spawnXpGem(e.x, e.y, Math.ceil(e.xp * xpMul));
           if (Math.random() < 0.0005) { Enemy.spawnNukeItem(e.x, e.y); }
           if (Math.random() < 0.0002) { Enemy.spawnRageItem(e.x, e.y); }
           if (e.isBoss) {
@@ -313,6 +328,26 @@ const Enemy = {
             Player.coinsEarned = (Player.coinsEarned || 0) + cv;
             Enemy.spawnCoinItem(e.x, e.y, cv);
           }
+          // Bomber explosion
+          if (e.isBomber) {
+            for (var be = 0; be < Enemy.list.length; be++) {
+              var other = Enemy.list[be];
+              if (other === e || !other.alive || other.dying) continue;
+              var bex = Game.unwrap(other.x, e.x);
+              var bey = Game.unwrap(other.y, e.y);
+              var bdx = e.x - bex, bdy = e.y - bey;
+              if (bdx * bdx + bdy * bdy < 80 * 80) {
+                other.dying = true;
+                other.deathTimer = 0.4;
+              }
+            }
+            var pex = Game.unwrap(Player.x, e.x);
+            var pey = Game.unwrap(Player.y, e.y);
+            var pdx = e.x - pex, pdy = e.y - pey;
+            if (pdx * pdx + pdy * pdy < 80 * 80) {
+              Player.takeDamage(3);
+            }
+          }
         }
         continue;
       }
@@ -322,8 +357,9 @@ const Enemy = {
       const dy = Player.y - uey;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > 0) {
-        e.x += (dx / dist) * e.speed * dt;
-        e.y += (dy / dist) * e.speed * dt;
+        var speedMul = (typeof Spawner !== 'undefined' && Spawner._speedMul) || 1;
+        e.x += (dx / dist) * e.speed * dt * speedMul;
+        e.y += (dy / dist) * e.speed * dt * speedMul;
         e.x = Game.wrap(e.x);
         e.y = Game.wrap(e.y);
         if (Math.abs(dy) > Math.abs(dx)) {
@@ -352,6 +388,27 @@ const Enemy = {
       if (this.list[er].alive) this.list[ew++] = this.list[er];
     }
     this.list.length = ew;
+
+    // Chest update
+    for (let ci = this.chestItems.length - 1; ci >= 0; ci--) {
+      var ch = this.chestItems[ci];
+      if (!ch.alive) continue;
+      ch.bob += dt * 3;
+      var crx = Game.unwrap(ch.x, Player.x);
+      var cry = Game.unwrap(ch.y, Player.y);
+      var cdx = Player.x - crx, cdy = Player.y - cry;
+      if (cdx * cdx + cdy * cdy < 30 * 30) {
+        ch.alive = false;
+        if (typeof Audio !== 'undefined') Audio.play('levelUp');
+        Game.state = 'LEVELING';
+        UI.showUpgrades();
+      }
+    }
+    var cw2 = 0;
+    for (var cr2 = 0; cr2 < this.chestItems.length; cr2++) {
+      if (this.chestItems[cr2].alive) this.chestItems[cw2++] = this.chestItems[cr2];
+    }
+    this.chestItems.length = cw2;
   },
 
   renderXpGems(ctx) {
@@ -470,6 +527,32 @@ const Enemy = {
     }
   },
 
+  renderChestItems: function(ctx) {
+    for (var i = 0; i < this.chestItems.length; i++) {
+      var ch = this.chestItems[i];
+      if (!ch.alive) continue;
+      var rx = Game.unwrap(ch.x, Player.x);
+      var ry = Game.unwrap(ch.y, Player.y);
+      var bob = Math.sin(ch.bob) * 3;
+      // Glow
+      ctx.fillStyle = 'rgba(255, 200, 50, 0.15)';
+      ctx.beginPath();
+      ctx.arc(rx, ry + bob, 14, 0, Math.PI * 2);
+      ctx.fill();
+      // Chest body
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(rx - 8, ry - 6 + bob, 16, 12);
+      ctx.fillStyle = '#DAA520';
+      ctx.fillRect(rx - 4, ry - 4 + bob, 8, 3);
+      ctx.fillRect(rx - 2, ry + 1 + bob, 4, 2);
+      // Sparkle
+      ctx.fillStyle = 'rgba(255, 215, 0, ' + (0.5 + Math.sin(ch.bob * 2) * 0.3) + ')';
+      ctx.beginPath();
+      ctx.arc(rx + 6, ry - 4 + bob, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  },
+
   renderAll(ctx) {
     for (const e of this.list) {
       if (!e.alive && !e.dying) continue;
@@ -477,6 +560,12 @@ const Enemy = {
       var ry = Game.unwrap(e.y, Player.y);
       ctx.save();
       ctx.translate(rx - e.x, ry - e.y);
+      if (e.isBomber) {
+        ctx.fillStyle = 'rgba(255, 50, 50, ' + (0.2 + Math.sin(e.animTimer * 8) * 0.1) + ')';
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, e.width * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
       if (e.isBoss) {
         this._renderBoss(ctx, e);
       } else if (e.type === 'bat') {

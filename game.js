@@ -238,6 +238,7 @@ const Game = {
     Enemy.nukeItems.length = 0;
     Enemy.rageItems.length = 0;
     Enemy.coinItems.length = 0;
+    Enemy.chestItems.length = 0;
     Enemy.pickupParticles.length = 0;
     PassiveManager.reset();
     Spawner.reset();
@@ -399,6 +400,7 @@ const Game = {
     Enemy.renderNukeItems(ctx);
     Enemy.renderRageItems(ctx);
     Enemy.renderCoinItems(ctx);
+    Enemy.renderChestItems(ctx);
     Player.render(ctx);
     ctx.restore();
     if (this.nukeIntensity > 0) {
@@ -421,6 +423,10 @@ const Game = {
     }
     if (this.rageTimer > 0) {
       ctx.fillStyle = 'rgba(80, 0, 0, 0.3)';
+      ctx.fillRect(0, 0, this.width, this.height);
+    }
+    if (typeof Spawner !== 'undefined' && Spawner._nightMode) {
+      ctx.fillStyle = 'rgba(0, 0, 40, 0.25)';
       ctx.fillRect(0, 0, this.width, this.height);
     }
     UI.render(ctx);

@@ -11,13 +11,25 @@ const Spawner = {
   _lastWaveMinute: -1,
   rageMul: 1,
   enemyCycleTime: 0,
+  _tutorial1: false,
+  _tutorial2: false,
+  _milestone3: false,
+  _milestone5: false,
+  _milestone10: false,
+  _milestone15: false,
+  _speedMul: 1,
+  _xpMul: 1,
+  _nightMode: false,
+  _chestTimer: 0,
 
   getEnemyType: function(t) {
     var minute = Math.floor(t / 60);
-    var phase = minute % 3;
-    if (phase === 0) return 'slime';
-    if (phase === 1) return Math.random() < 0.5 ? 'slime' : 'bat';
-    return 'bat';
+    if (minute < 2) return 'slime';
+    var roll = Math.random();
+    if (minute < 5) return roll < 0.5 ? 'slime' : 'bat';
+    if (roll < 0.35) return 'slime';
+    if (roll < 0.65) return 'bat';
+    return 'bomber';
   },
 
   reset() {
@@ -26,11 +38,31 @@ const Spawner = {
     this.bossTimer = 0;
     this.rageMul = 1;
     this._lastWaveMinute = -1;
+    this._tutorial1 = false;
+    this._tutorial2 = false;
+    this._milestone3 = false;
+    this._milestone5 = false;
+    this._milestone10 = false;
+    this._milestone15 = false;
+    this._speedMul = 1;
+    this._xpMul = 1;
+    this._nightMode = false;
+    this._chestTimer = 0;
   },
 
   update(dt) {
     this.elapsedTime += dt;
     this.enemyCycleTime = this.elapsedTime;
+
+    // Tutorial messages
+    if (!this._tutorial1 && this.elapsedTime >= 0.5) {
+      this._tutorial1 = true;
+      UI.showMessage('Двигайся! Оружие стреляет само.', 4);
+    }
+    if (!this._tutorial2 && this.elapsedTime > 8) {
+      this._tutorial2 = true;
+      UI.showMessage('Собирай зелёные кристаллы — это опыт!', 3);
+    }
 
     var currentMinute = Math.floor(this.elapsedTime / 60);
     if (currentMinute !== this._lastWaveMinute) {
@@ -39,6 +71,41 @@ const Spawner = {
       var phase = currentMinute % 3;
       var waveName = phase === 0 ? 'СЛАЙМЫ' : phase === 1 ? 'СМЕШАННАЯ ВОЛНА' : 'ЛЕТУЧИЕ МЫШИ';
       UI.showMessage('Волна ' + (currentMinute + 1) + ': ' + waveName, 2.5);
+
+      // Milestone events
+      if (currentMinute === 3 && !this._milestone3) {
+        this._milestone3 = true;
+        UI.showMessage('🌲 Лес просыпается...', 3);
+        this._speedMul = 1.2;
+      }
+      if (currentMinute === 5 && !this._milestone5) {
+        this._milestone5 = true;
+        UI.showMessage('⚔️ Два босса!', 3);
+        var bx1 = Player.x + (Math.random() - 0.5) * 600;
+        var by1 = Player.y + (Math.random() - 0.5) * 600;
+        var bx2 = Player.x + (Math.random() - 0.5) * 600;
+        var by2 = Player.y + (Math.random() - 0.5) * 600;
+        Enemy.spawnBoss(bx1, by1);
+        Enemy.spawnBoss(bx2, by2);
+        if (typeof Audio !== 'undefined') Audio.play('boss');
+      }
+      if (currentMinute === 10 && !this._milestone10) {
+        this._milestone10 = true;
+        UI.showMessage('🌙 НОЧЬ... опыт ×2!', 3);
+        this._nightMode = true;
+        this._xpMul = 2;
+        this._speedMul = 1.5;
+      }
+      if (currentMinute === 15 && !this._milestone15) {
+        this._milestone15 = true;
+        UI.showMessage('☀️ РАССВЕТ!', 3);
+        this._nightMode = false;
+        this._xpMul = 1;
+        this._speedMul = 1;
+        var cx = Player.x + (Math.random() - 0.5) * 300;
+        var cy = Player.y + (Math.random() - 0.5) * 300;
+        Enemy.spawnChest(cx, cy);
+      }
     }
 
     // Boss spawn (runs independently of regular spawn timer)
@@ -56,6 +123,16 @@ const Spawner = {
         if (typeof Audio !== 'undefined') Audio.play('boss');
         UI.showMessage('BOSS APPEARS!', 3);
       }
+    }
+
+    // Chest spawn every 2 minutes
+    this._chestTimer += dt;
+    if (this._chestTimer >= 120) {
+      this._chestTimer = 0;
+      var cxc = Player.x + (Math.random() - 0.5) * 400;
+      var cyc = Player.y + (Math.random() - 0.5) * 400;
+      Enemy.spawnChest(cxc, cyc);
+      UI.showMessage('💰 Сундук появился на карте!', 3);
     }
 
     this.timer += dt * this.rageMul;
