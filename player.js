@@ -124,11 +124,13 @@ const Player = {
       this.xpToNext = Math.floor(this.xpToNext * 1.4);
       Game.state = 'LEVELING';
       UI.showUpgrades();
+      if (typeof Audio !== 'undefined') Audio.play('levelUp');
     }
   },
 
   takeDamage(amount) {
     if (this.invuln) return;
+    if (typeof Audio !== 'undefined') Audio.play('hit');
     this.hp -= amount;
     if (this.hp <= 0) {
       if (this._revives > 0) {

@@ -167,6 +167,7 @@ const UI = {
         <button class="restart-btn" id="continueBtn">ПРОДОЛЖИТЬ</button>`;
       overlay.style.display = 'flex';
       document.getElementById('continueBtn').addEventListener('click', () => {
+        if (typeof Audio !== 'undefined') Audio.play('click');
         overlay.style.display = 'none';
         Game.state = 'PLAYING';
       });
@@ -186,6 +187,7 @@ const UI = {
     overlay.style.display = 'flex';
     overlay.querySelectorAll('.upgrade-card').forEach((card) => {
       card.addEventListener('click', () => {
+        if (typeof Audio !== 'undefined') Audio.play('click');
         this.applyUpgrade(card.dataset.id, card.dataset.type);
         overlay.style.display = 'none';
         Game.state = 'PLAYING';
@@ -316,6 +318,7 @@ const UI = {
   showGameOver() {
     const overlay = document.getElementById('upgradeOverlay');
     if (!overlay) return;
+    if (typeof Audio !== 'undefined') Audio.play('gameOver');
     var gp = document.getElementById('gameplayMusic');
     if (gp) { gp.pause(); gp.currentTime = 0; }
     var rage = document.getElementById('rageMusic');

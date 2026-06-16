@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function startGame() {
   if (Game.state === 'LOADING') return;
+  if (typeof Audio !== 'undefined') Audio.play('click');
   document.getElementById('mainMenu').style.display = 'none';
   var menuMusic = document.getElementById('menuMusic');
   var gameplayMusic = document.getElementById('gameplayMusic');

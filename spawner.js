@@ -53,6 +53,7 @@ const Spawner = {
         var bx = Player.x + (Math.random() - 0.5) * 600;
         var by = Player.y + (Math.random() - 0.5) * 600;
         Enemy.spawnBoss(bx, by);
+        if (typeof Audio !== 'undefined') Audio.play('boss');
         UI.showMessage('BOSS APPEARS!', 3);
       }
     }

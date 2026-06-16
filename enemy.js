@@ -133,6 +133,7 @@ const Enemy = {
             });
           }
           g.alive = false;
+          if (typeof Audio !== 'undefined') Audio.play('xp');
         } else {
           var dist = Math.sqrt(distSq);
           var speed = 300 + Player.magnet * 0.5;
@@ -228,6 +229,7 @@ const Enemy = {
       if (cdistSq < cpickupRadius * cpickupRadius) {
         if (cdistSq < 400) {
           ci.alive = false;
+          if (typeof Audio !== 'undefined') Audio.play('coin');
           for (var ci_pi = 0; ci_pi < 5; ci_pi++) {
             this.pickupParticles.push({
               x: ci.x, y: ci.y,
@@ -268,6 +270,7 @@ const Enemy = {
         if (e.deathTimer <= 0) {
           e.alive = false;
           Player.kills++;
+          if (typeof Audio !== 'undefined') Audio.play(e.isBoss ? 'explosion' : 'hit');
           Enemy.spawnXpGem(e.x, e.y, e.xp);
           if (Math.random() < 0.0005) { Enemy.spawnNukeItem(e.x, e.y); }
           if (Math.random() < 0.0002) { Enemy.spawnRageItem(e.x, e.y); }

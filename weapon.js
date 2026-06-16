@@ -729,6 +729,7 @@ var WeaponManager = {
       if (w.timer >= cd) {
         w.timer -= cd;
         w.attack();
+        if (typeof Audio !== 'undefined') Audio.play('attack');
       }
     }
     this._updateProjectiles(dt);
