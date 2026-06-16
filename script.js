@@ -7,11 +7,6 @@ if (typeof YandexSDK !== 'undefined') YandexSDK.init();
 
 function checkLoading() {
   if (Game.state !== 'LOADING') return;
-  var pct = Game.totalAssets > 0 ? Math.round(Game.loadedAssets / Game.totalAssets * 100) : 0;
-  var bar = document.getElementById('loadingBar');
-  var text = document.getElementById('loadingProgress');
-  if (bar) bar.style.width = pct + '%';
-  if (text) text.textContent = pct + '%';
   if (Game.loadedAssets >= Game.totalAssets) {
     Game.state = 'IDLE';
     var loading = document.getElementById('loadingScreen');
