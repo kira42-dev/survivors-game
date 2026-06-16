@@ -42,7 +42,7 @@ const UI = {
     const mins = Math.floor(this.gameTime / 60);
     const secs = Math.floor(this.gameTime % 60);
     const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    ctx.fillText(`${timeStr}  Kills: ${Player.kills}`, 16, 52);
+    ctx.fillText(`${timeStr}  Kills: ${Player.kills}  \u25C8${Player.coinsEarned || 0}`, 16, 52);
   },
 
   drawHpBar(ctx) {
