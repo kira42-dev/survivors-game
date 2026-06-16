@@ -326,6 +326,30 @@ canvas {
   color: #4f4;
 }
 
+#pauseMenu {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.pause-content {
+  text-align: center;
+}
+.pause-title {
+  font-size: 48px;
+  color: #fff;
+  margin-bottom: 20px;
+  text-shadow: 0 0 20px rgba(255,255,255,0.3);
+}
+.pause-divider {
+  width: 200px; height: 2px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 auto 30px;
+}
+
 .meta-coins {
   font-size: 22px;
   color: #ffe040;

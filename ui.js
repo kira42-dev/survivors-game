@@ -27,7 +27,7 @@ const UI = {
       ctx.save();
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
       ctx.fillRect(Game.width / 2 - 120, 80, 240, 40);
-      ctx.fillStyle = '#f44';
+      ctx.fillStyle = '#fff';
       ctx.font = 'bold 20px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';

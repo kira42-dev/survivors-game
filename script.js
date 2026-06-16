@@ -19,11 +19,39 @@ function checkLoading() {
   requestAnimationFrame(checkLoading);
 }
 
+function togglePause() {
+  var menu = document.getElementById('pauseMenu');
+  if (Game.state === 'PLAYING') {
+    Game.state = 'PAUSED';
+    menu.style.display = 'flex';
+  } else if (Game.state === 'PAUSED') {
+    Game.state = 'PLAYING';
+    menu.style.display = 'none';
+  }
+}
+
+function quitToMenu() {
+  var menu = document.getElementById('pauseMenu');
+  menu.style.display = 'none';
+  Player.hp = 0;
+  Player.dead = true;
+  Game.state = 'GAME_OVER';
+  UI.showGameOver();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   checkLoading();
   document.getElementById('metaUpgradeBtn').addEventListener('click', function() {
     SaveManager.openMenu();
   });
+  document.getElementById('resumeBtn').addEventListener('click', togglePause);
+  document.getElementById('quitBtn').addEventListener('click', quitToMenu);
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && (Game.state === 'PLAYING' || Game.state === 'PAUSED')) {
+    togglePause();
+  }
 });
 
 function startGame() {
