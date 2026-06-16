@@ -161,6 +161,17 @@ const UI = {
     const overlay = document.getElementById('upgradeOverlay');
     if (!overlay) return;
     const choices = this.getRandomUpgrades(3);
+    if (!choices || choices.length === 0) {
+      overlay.innerHTML = `<div class="upgrade-title">УРОВЕНЬ ${Player.level}</div>
+        <div style="color:#aaa;margin-bottom:20px;">Все улучшения максимальны</div>
+        <button class="restart-btn" id="continueBtn">ПРОДОЛЖИТЬ</button>`;
+      overlay.style.display = 'flex';
+      document.getElementById('continueBtn').addEventListener('click', () => {
+        overlay.style.display = 'none';
+        Game.state = 'PLAYING';
+      });
+      return;
+    }
     overlay.innerHTML = `<div class="upgrade-title">УРОВЕНЬ ${Player.level}</div><div class="upgrade-choices">`;
     for (const c of choices) {
       const descClass = c.type === 'evolution' ? 'upgrade-desc evolve' : 'upgrade-desc';

@@ -119,6 +119,61 @@ canvas {
   background: #e04040;
 }
 
+/* ===== Loading Screen ===== */
+#loadingScreen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0f 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: #ffe040;
+  text-shadow: 0 0 40px rgba(255,224,64,0.4);
+  letter-spacing: 6px;
+}
+
+.loading-subtitle {
+  font-size: 22px;
+  color: #c0a030;
+  letter-spacing: 10px;
+  margin-top: -2px;
+}
+
+.loading-bar-container {
+  width: 300px;
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  margin: 40px auto 12px;
+  overflow: hidden;
+}
+
+.loading-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #c0a030, #ffe040);
+  border-radius: 4px;
+  transition: width 0.1s;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: #888;
+  letter-spacing: 2px;
+}
+
 /* ===== Main Menu ===== */
 #mainMenu {
   position: fixed;

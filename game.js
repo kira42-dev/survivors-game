@@ -15,6 +15,8 @@ const Game = {
   shakeTimer: 0,
   shakeIntensity: 20,
   rageTimer: 0,
+  loadedAssets: 0,
+  totalAssets: 0,
 
   wrap: function(v) {
     var ms = this.mapSize;
@@ -101,6 +103,8 @@ const Game = {
   },
 
   loadAssets() {
+    this.state = 'LOADING';
+    this.loadedAssets = 0;
     const assets = {
       plains: 'assets/sprites/tilesets/grass_new.png',
       player: 'assets/sprites/characters/player.png',
@@ -146,8 +150,11 @@ const Game = {
       rage: 'assets/sprites/weapons/rage.png',
       coin: 'assets/sprites/items/coin.png',
     };
+    this.totalAssets = Object.keys(assets).length;
     for (const [key, src] of Object.entries(assets)) {
       const img = new Image();
+      img.onload = () => { this.loadedAssets++; };
+      img.onerror = () => { this.loadedAssets++; };
       img.src = src;
       this.sprites[key] = img;
     }
@@ -188,6 +195,7 @@ const Game = {
   },
 
   start() {
+    if (this.state === 'LOADING') return;
     this.reset();
     this.camera.x = Player.x - this.width / 2;
     this.camera.y = Player.y - this.height / 2;

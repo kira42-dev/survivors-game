@@ -37,6 +37,9 @@ const Player = {
     window.addEventListener('keyup', (e) => {
       this.keys[e.key.toLowerCase()] = false;
     });
+    window.addEventListener('blur', () => {
+      this.keys = {};
+    });
   },
 
   update(dt) {

@@ -21,8 +21,18 @@
 
 
 <div id="upgradeOverlay"></div>
-<audio id="menuMusic" src="main menu.mp3" loop></audio>
-<audio id="gameplayMusic" src="gayplay.mp3" loop></audio>
+<div id="loadingScreen">
+  <div class="loading-content">
+    <div class="loading-title">MYSTIC WOODS</div>
+    <div class="loading-subtitle">SURVIVORS</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar" id="loadingBar"></div>
+    </div>
+    <div class="loading-text" id="loadingProgress">0%</div>
+  </div>
+</div>
+<audio id="menuMusic" src="menu.mp3" loop></audio>
+<audio id="gameplayMusic" src="menu.mp3" loop></audio>
 <audio id="rageMusic" src="make.mp3" loop></audio>
 <script src="player.js"></script>
 <script src="enemy.js"></script>
