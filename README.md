@@ -18,12 +18,6 @@
 | **Toroidal World** | Зацикленная карта (wrap/unwrap) |
 | **localStorage** | Сохранение прогресса между забегами |
 
-## 📸 Скриншот
-
-![Gameplay](assets/screenshot.png)
-
-(Сделать скриншот: `Win+Shift+S` во время игры, сохранить как `assets/screenshot.png`)
-
 ## 🎯 Как играть
 
 - **Desktop**: WASD / стрелки — движение, оружие атакует автоматически
