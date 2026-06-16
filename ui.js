@@ -21,6 +21,7 @@ const UI = {
     this.drawHpBar(ctx);
     this.drawXpBar(ctx);
     this.drawStats(ctx);
+    this.drawEquipment(ctx);
     this.drawMinimap(ctx);
     if (this.message) {
       ctx.save();
@@ -71,6 +72,53 @@ const UI = {
     ctx.font = '11px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(`Lv.${Player.level} ${Player.xp}/${Player.xpToNext} XP`, x + w / 2, y + 12);
+  },
+
+  drawEquipment(ctx) {
+    var x = Game.width - 16;
+    var y = 16;
+    var iconSize = 28;
+    var gap = 4;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.font = '10px monospace';
+
+    // Weapons row
+    var weapons = WeaponManager.weapons;
+    for (var wi = 0; wi < weapons.length; wi++) {
+      var w = weapons[wi];
+      var sx = x - (weapons.length - wi) * (iconSize + gap) + gap;
+      var sy = y;
+      var spriteKey = WEAPON_SPRITE_MAP[w.id];
+      var img = spriteKey ? Game.sprites[spriteKey] : null;
+      if (img && img.width > 0) {
+        ctx.drawImage(img, sx, sy, iconSize, iconSize);
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
+        ctx.fillRect(sx, sy, iconSize, iconSize);
+      }
+      ctx.fillStyle = '#ffe040';
+      ctx.fillText(w.level + '/' + w.maxLevel, sx + iconSize - 2, sy + iconSize - 2);
+    }
+
+    // Passives row below
+    var passives = PassiveManager.items;
+    y += iconSize + 6;
+    for (var pi = 0; pi < passives.length; pi++) {
+      var p = passives[pi];
+      var sx = x - (passives.length - pi) * (iconSize + gap) + gap;
+      var sy = y;
+      var spriteKey = PASSIVE_SPRITE_MAP[p.id];
+      var img = spriteKey ? Game.sprites[spriteKey] : null;
+      if (img && img.width > 0) {
+        ctx.drawImage(img, sx, sy, iconSize, iconSize);
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.fillRect(sx, sy, iconSize, iconSize);
+      }
+      ctx.fillStyle = '#8cf';
+      ctx.fillText(p.level + '/' + PASSIVE_DEFS[p.id].maxLevel, sx + iconSize - 2, sy + iconSize - 2);
+    }
   },
 
   drawMinimap(ctx) {
