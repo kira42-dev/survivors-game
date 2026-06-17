@@ -18,18 +18,27 @@ const Touch = {
     canvas.addEventListener('touchcancel', (e) => this.handleEnd(e),    { passive: false });
   },
 
+  _toCanvas(clientX, clientY) {
+    const rect = Game.canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (Game.canvas.width  / rect.width)  / (window.devicePixelRatio || 1),
+      y: (clientY - rect.top)  * (Game.canvas.height / rect.height) / (window.devicePixelRatio || 1),
+    };
+  },
+
   handleStart(e) {
     e.preventDefault();
+    if (this.active) return;
     for (let i = 0; i < e.changedTouches.length; i++) {
       const t = e.changedTouches[i];
-      if (this.active) break;
-      if (t.clientX > Game.width / 2) continue;
+      const pos = this._toCanvas(t.clientX, t.clientY);
+      if (pos.x > Game.width / 2) continue;
       this.active = true;
       this.identifier = t.identifier;
-      this.baseX = t.clientX;
-      this.baseY = t.clientY;
-      this.thumbX = t.clientX;
-      this.thumbY = t.clientY;
+      this.baseX  = pos.x;
+      this.baseY  = pos.y;
+      this.thumbX = pos.x;
+      this.thumbY = pos.y;
       this.dx = 0;
       this.dy = 0;
       break;
@@ -39,52 +48,49 @@ const Touch = {
   handleMove(e) {
     e.preventDefault();
     if (!this.active) return;
-    let touch = null;
     for (let i = 0; i < e.changedTouches.length; i++) {
-      if (e.changedTouches[i].identifier === this.identifier) {
-        touch = e.changedTouches[i];
-        break;
+      if (e.changedTouches[i].identifier !== this.identifier) continue;
+      const pos = this._toCanvas(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+      const rawDx = pos.x - this.baseX;
+      const rawDy = pos.y - this.baseY;
+      const dist  = Math.sqrt(rawDx * rawDx + rawDy * rawDy);
+      const max   = this.baseRadius;
+      if (dist > max) {
+        this.thumbX = this.baseX + (rawDx / dist) * max;
+        this.thumbY = this.baseY + (rawDy / dist) * max;
+      } else {
+        this.thumbX = pos.x;
+        this.thumbY = pos.y;
       }
+      this.dx = (this.thumbX - this.baseX) / max;
+      this.dy = (this.thumbY - this.baseY) / max;
+      break;
     }
-    if (!touch) return;
-    const rawDx = touch.clientX - this.baseX;
-    const rawDy = touch.clientY - this.baseY;
-    const dist = Math.sqrt(rawDx * rawDx + rawDy * rawDy);
-    const maxDist = this.baseRadius;
-    if (dist > maxDist) {
-      this.thumbX = this.baseX + (rawDx / dist) * maxDist;
-      this.thumbY = this.baseY + (rawDy / dist) * maxDist;
-    } else {
-      this.thumbX = touch.clientX;
-      this.thumbY = touch.clientY;
-    }
-    this.dx = (this.thumbX - this.baseX) / maxDist;
-    this.dy = (this.thumbY - this.baseY) / maxDist;
   },
 
   handleEnd(e) {
     e.preventDefault();
     for (let i = 0; i < e.changedTouches.length; i++) {
-      if (e.changedTouches[i].identifier === this.identifier) {
-        this.active = false;
-        this.identifier = null;
-        this.dx = 0;
-        this.dy = 0;
-        break;
-      }
+      if (e.changedTouches[i].identifier !== this.identifier) continue;
+      this.active = false;
+      this.identifier = null;
+      this.dx = 0;
+      this.dy = 0;
+      break;
     }
   },
 
   render(ctx) {
     if (!this.active) return;
+    const dpr = window.devicePixelRatio || 1;
     ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     ctx.beginPath();
     ctx.arc(this.baseX, this.baseY, this.baseRadius, 0, Math.PI * 2);
     ctx.fillStyle = 'rgba(255,255,255,0.06)';
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.lineWidth = 2;
     ctx.stroke();
 
