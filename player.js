@@ -129,8 +129,10 @@ const Player = {
     if (this.xp >= needed) {
       this.xp -= needed;
       this.level++;
-      var add = this.level < 20 ? 10 : 16;
-      this.xpToNext = this.xpToNext + add;
+      if (this.level === 2) this.xpToNext = 20;
+      else if (this.level === 3) this.xpToNext = 30;
+      else if (this.level === 4) this.xpToNext = 60;
+      else if (this.level >= 5) this.xpToNext = Math.ceil(this.xpToNext * 1.2);
       Enemy.xpGems.forEach(function(g) { if (g.alive) g._magnet = true; });
       Game.state = 'LEVELING';
       UI.showUpgrades();

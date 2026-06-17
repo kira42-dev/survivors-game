@@ -18,7 +18,7 @@ const Enemy = {
   createBoss: function(x, y) {
     return {
       x: x, y: y, type: 'boss', isBoss: true,
-      hp: 80, maxHp: 80,
+      hp: 2400, maxHp: 2400,
       speed: 40,
       xp: 20,
       width: 64, height: 64,
@@ -331,6 +331,7 @@ const Enemy = {
             var cv = 5;
             Player.coinsEarned = (Player.coinsEarned || 0) + cv;
             Enemy.spawnCoinItem(e.x, e.y, cv);
+            Enemy.spawnChest(e.x, e.y);
           } else if (Math.random() < 0.2) {
             var cv = Math.random() < 0.1 ? 3 : 1;
             Player.coinsEarned = (Player.coinsEarned || 0) + cv;

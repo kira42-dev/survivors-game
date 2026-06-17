@@ -4,10 +4,10 @@ const Spawner = {
   baseInterval: 0.8,
   minInterval: 0.3,
   decreaseRate: 0.006,
-  groupBase: 1,
+  groupBase: 3,
   groupInterval: 16,
   bossTimer: 0,
-  bossInterval: 90,
+  bossInterval: 30,
   _lastWaveMinute: -1,
   rageMul: 1,
   enemyCycleTime: 0,
@@ -141,9 +141,9 @@ const Spawner = {
     if (t > 300) interval = Math.max(this.minInterval, interval - (t - 300) * 0.001);
     if (this.timer < interval) return;
     this.timer -= interval;
-    var ENEMY_LIMIT = t < 180 ? 100 : t < 600 ? 200 : 280;
+    var ENEMY_LIMIT = t < 180 ? 300 : t < 600 ? 600 : 840;
     if (Enemy.aliveCount() >= ENEMY_LIMIT) return;
-    var maxGroup = t < 120 ? 3 : t < 300 ? 6 : t < 600 ? 10 : 14;
+    var maxGroup = t < 120 ? 9 : t < 300 ? 18 : t < 600 ? 30 : 42;
     var groupSize = Math.min(maxGroup, this.groupBase + Math.floor(t / this.groupInterval));
     for (let i = 0; i < groupSize; i++) {
       let x, y;
