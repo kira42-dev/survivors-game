@@ -12,6 +12,7 @@ const Touch = {
 
   init() {
     const canvas = Game.canvas;
+    canvas.style.touchAction = 'none';
     canvas.addEventListener('touchstart',  (e) => this.handleStart(e),  { passive: false });
     canvas.addEventListener('touchmove',   (e) => this.handleMove(e),   { passive: false });
     canvas.addEventListener('touchend',    (e) => this.handleEnd(e),    { passive: false });
