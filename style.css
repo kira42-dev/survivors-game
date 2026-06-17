@@ -62,6 +62,25 @@ canvas {
   #upgradeOverlay .upgrade-card {
     width: 140px;
     padding: 14px 16px;
+    overflow: hidden;
+  }
+  #upgradeOverlay .upgrade-name {
+    font-size: 14px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  #upgradeOverlay .upgrade-desc {
+    font-size: 11px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  #upgradeOverlay .upgrade-icon {
+    font-size: 26px;
+    margin-bottom: 6px;
+  }
+  #upgradeOverlay .upgrade-weapon-img {
+    width: 32px;
+    height: 32px;
   }
   .restart-btn {
     padding: 18px 48px;
