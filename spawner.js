@@ -2,10 +2,10 @@ const Spawner = {
   elapsedTime: 0,
   timer: 0,
   baseInterval: 0.8,
-  minInterval: 0.5,
-  decreaseRate: 0.008,
+  minInterval: 0.3,
+  decreaseRate: 0.006,
   groupBase: 1,
-  groupInterval: 20,
+  groupInterval: 16,
   bossTimer: 0,
   bossInterval: 90,
   _lastWaveMinute: -1,
@@ -136,12 +136,15 @@ const Spawner = {
     }
 
     this.timer += dt * this.rageMul;
-    const interval = Math.max(this.minInterval, this.baseInterval - this.elapsedTime * this.decreaseRate);
+    var t = this.elapsedTime;
+    var interval = Math.max(this.minInterval, this.baseInterval - t * this.decreaseRate);
+    if (t > 300) interval = Math.max(this.minInterval, interval - (t - 300) * 0.001);
     if (this.timer < interval) return;
     this.timer -= interval;
-    const ENEMY_LIMIT = 200;
+    var ENEMY_LIMIT = t < 180 ? 100 : t < 600 ? 200 : 280;
     if (Enemy.aliveCount() >= ENEMY_LIMIT) return;
-    const groupSize = Math.min(8, this.groupBase + Math.floor(this.elapsedTime / this.groupInterval));
+    var maxGroup = t < 120 ? 3 : t < 300 ? 6 : t < 600 ? 10 : 14;
+    var groupSize = Math.min(maxGroup, this.groupBase + Math.floor(t / this.groupInterval));
     for (let i = 0; i < groupSize; i++) {
       let x, y;
       var attempts = 0;
@@ -167,8 +170,8 @@ const Spawner = {
         }
         attempts++;
       } while (attempts < 10 && (x - Player.x) * (x - Player.x) + (y - Player.y) * (y - Player.y) < 300 * 300);
-      const timeDiff = Math.floor(this.elapsedTime / 8);
-      const levelDiff = Math.floor(Player.level * 0.25);
+      const timeDiff = Math.floor(this.elapsedTime / 6);
+      const levelDiff = Math.floor(Player.level * 0.35);
       const difficulty = timeDiff + levelDiff;
       var type = Spawner.getEnemyType(this.elapsedTime);
       Enemy.spawn(x, y, difficulty, type);

@@ -30,18 +30,20 @@ const Enemy = {
 
   create(x, y, difficulty, type) {
     type = type || 'slime';
-    const hpMul = 1 + difficulty * 0.15;
+    var timeMins = (typeof Spawner !== 'undefined' ? Spawner.elapsedTime : 0) / 60;
+    var hpMul = (1 + difficulty * 0.18) * Math.pow(1.065, timeMins);
     const isElite = Math.random() < 0.15;
     const eliteHpMul = isElite ? 2.5 : 1;
     const eliteSpdMul = isElite ? 1.3 : 1;
     const eliteXpMul = isElite ? 1.5 : 1;
     const eliteSizeMul = isElite ? 1.4 : 1;
     var isBomber = type === 'bomber';
+    var speedBonus = Math.min(1.6, 1 + (typeof Spawner !== 'undefined' ? Spawner.elapsedTime : 0) / 3000);
     return {
       x, y, type,
-      hp: Math.ceil((isBomber ? 5 : 2) * hpMul * eliteHpMul),
-      maxHp: Math.ceil((isBomber ? 5 : 2) * hpMul * eliteHpMul),
-      speed: (isBomber ? 35 : 55 + Math.random() * 10) * eliteSpdMul,
+      hp: Math.ceil((isBomber ? 8 : 3) * hpMul * eliteHpMul),
+      maxHp: Math.ceil((isBomber ? 8 : 3) * hpMul * eliteHpMul),
+      speed: Math.ceil((isBomber ? 35 : 55 + Math.random() * 10) * eliteSpdMul * speedBonus),
       xp: Math.ceil((1 + Math.floor(difficulty / 3)) * eliteXpMul),
       width: Math.ceil((isBomber ? 36 : (type === 'bat' ? 16 : 32)) * eliteSizeMul),
       height: Math.ceil((isBomber ? 36 : (type === 'bat' ? 24 : 32)) * eliteSizeMul),
