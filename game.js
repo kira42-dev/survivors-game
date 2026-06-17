@@ -382,22 +382,19 @@ const Game = {
 
   render() {
     const ctx = this.ctx;
-    const dpr = window.devicePixelRatio || 1;
-    // Set world transform: zoom
-    ctx.setTransform(dpr * this.zoom, 0, 0, dpr * this.zoom, 0, 0);
     ctx.clearRect(0, 0, this.width, this.height);
     ctx.fillStyle = '#1a2a1a';
     ctx.fillRect(0, 0, this.width, this.height);
-    // Apply camera translation
-    ctx.translate(-this.camera.x, -this.camera.y);
+    ctx.save();
     if (this.shakeTimer > 0) {
       var si = this.shakeIntensity * (this.shakeTimer / 0.5);
-      ctx.save();
       ctx.translate(
-        (Math.random() - 0.5) * 2 * si / this.zoom,
-        (Math.random() - 0.5) * 2 * si / this.zoom
+        (Math.random() - 0.5) * 2 * si,
+        (Math.random() - 0.5) * 2 * si
       );
     }
+    ctx.translate(-this.camera.x, -this.camera.y);
+    ctx.scale(this.zoom, this.zoom);
     this.renderMap(ctx);
     Enemy.renderAll(ctx);
     WeaponManager.render(ctx);
@@ -407,9 +404,7 @@ const Game = {
     Enemy.renderCoinItems(ctx);
     Enemy.renderChestItems(ctx);
     Player.render(ctx);
-    if (this.shakeTimer > 0) ctx.restore();
-    // Reset to screen transform for overlays
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.restore();
     if (this.nukeIntensity > 0) {
       var ni = Math.max(0, this.nukeIntensity);
       var ringP = 1 - ni;
