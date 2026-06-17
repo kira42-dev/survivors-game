@@ -21,8 +21,8 @@ const Touch = {
   _toCanvas(clientX, clientY) {
     const rect = Game.canvas.getBoundingClientRect();
     return {
-      x: (clientX - rect.left) * (Game.canvas.width  / rect.width)  / (window.devicePixelRatio || 1),
-      y: (clientY - rect.top)  * (Game.canvas.height / rect.height) / (window.devicePixelRatio || 1),
+      x: (clientX - rect.left) * (Game.width  / rect.width),
+      y: (clientY - rect.top)  * (Game.height / rect.height),
     };
   },
 
@@ -82,9 +82,8 @@ const Touch = {
 
   render(ctx) {
     if (!this.active) return;
-    const dpr = window.devicePixelRatio || 1;
     ctx.save();
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     ctx.beginPath();
     ctx.arc(this.baseX, this.baseY, this.baseRadius, 0, Math.PI * 2);
