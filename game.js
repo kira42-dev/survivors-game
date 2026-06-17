@@ -15,7 +15,7 @@ const Game = {
   shakeTimer: 0,
   shakeIntensity: 20,
   rageTimer: 0,
-  zoom: 2,
+  zoom: 1.5,
   loadedAssets: 0,
   totalAssets: 0,
 
