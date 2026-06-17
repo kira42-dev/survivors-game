@@ -161,6 +161,12 @@ const Enemy = {
       const ugy = Game.unwrap(g.y, Player.y);
       const dx = Player.x - ugx;
       const dy = Player.y - ugy;
+      if (g._magnet) {
+        var md = Math.sqrt(dx * dx + dy * dy);
+        if (md < 5) { Player.addXp(g.value); g.alive = false; }
+        else { g.x += (dx / md) * 400 * dt; g.y += (dy / md) * 400 * dt; g.x = Game.wrap(g.x); g.y = Game.wrap(g.y); }
+        continue;
+      }
       const distSq = dx * dx + dy * dy;
       var pickupRadius = 150 + Player.magnet;
       if (distSq < pickupRadius * pickupRadius) {

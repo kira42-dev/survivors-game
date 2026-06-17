@@ -5,7 +5,7 @@ const Player = {
   maxHp: 10,
   hp: 10,
   xp: 0,
-  xpToNext: 10,
+  xpToNext: 20,
   level: 1,
   kills: 0,
   dir: 0,
@@ -129,7 +129,9 @@ const Player = {
     if (this.xp >= needed) {
       this.xp -= needed;
       this.level++;
-      this.xpToNext = Math.floor(this.xpToNext * 1.4);
+      var add = this.level < 20 ? 10 : 16;
+      this.xpToNext = this.xpToNext + add;
+      Enemy.xpGems.forEach(function(g) { if (g.alive) g._magnet = true; });
       Game.state = 'LEVELING';
       UI.showUpgrades();
       if (typeof Audio !== 'undefined') Audio.play('levelUp');
