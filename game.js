@@ -388,13 +388,12 @@ const Game = {
     ctx.save();
     if (this.shakeTimer > 0) {
       var si = this.shakeIntensity * (this.shakeTimer / 0.5);
-      ctx.translate(
-        (Math.random() - 0.5) * 2 * si,
-        (Math.random() - 0.5) * 2 * si
-      );
+      ctx.scale(this.zoom, this.zoom);
+      ctx.translate(-this.camera.x + (Math.random() - 0.5) * 2 * si / this.zoom, -this.camera.y + (Math.random() - 0.5) * 2 * si / this.zoom);
+    } else {
+      ctx.scale(this.zoom, this.zoom);
+      ctx.translate(-this.camera.x, -this.camera.y);
     }
-    ctx.translate(-this.camera.x, -this.camera.y);
-    ctx.scale(this.zoom, this.zoom);
     this.renderMap(ctx);
     Enemy.renderAll(ctx);
     WeaponManager.render(ctx);
