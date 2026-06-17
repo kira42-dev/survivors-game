@@ -25,8 +25,8 @@ const Touch = {
     if (!touch) return;
     this.active = true;
     this.identifier = touch.identifier;
-    this.baseX = this.margin + this.baseRadius;
-    this.baseY = Game.height - this.margin - this.baseRadius;
+    this.baseX = Game.width / 2;
+    this.baseY = Game.height * 0.82;
     this.thumbX = this.baseX;
     this.thumbY = this.baseY;
     this.dx = 0;

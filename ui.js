@@ -142,10 +142,10 @@ const UI = {
   },
 
   drawMinimap(ctx) {
-    var mmSize = 150;
+    var mmSize = Touch.isMobile() ? 90 : 150;
     var margin = 16;
     var mmX = Game.width - mmSize - margin;
-    var mmY = Game.height - mmSize - margin;
+    var mmY = Touch.isMobile() ? margin : Game.height - mmSize - margin;
     var center = mmSize / 2;
     var worldView = 700;
 
