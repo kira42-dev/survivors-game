@@ -686,12 +686,28 @@ const Enemy = {
       return;
     }
     const fw = 64, fh = 64;
-    var col = e.animFrame;
-    var row = 0;
+    var col, row;
+    if (e.dying) {
+      row = 4;
+      col = Math.min(7, Math.floor(8 * (1 - e.deathTimer / 0.4)));
+    } else {
+      row = 1;
+      col = e.animFrame;
+    }
     ctx.save();
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(sprite, col * fw, row * fh, fw, fh, e.x - fw / 2, e.y - fh / 2, fw, fh);
-    ctx.imageSmoothingEnabled = true;
+    if (e.dir === 1) {
+      ctx.save();
+      ctx.translate(e.x, e.y);
+      ctx.scale(-1, 1);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(sprite, col * fw, row * fh, fw, fh, -fw / 2, -fh / 2, fw, fh);
+      ctx.imageSmoothingEnabled = true;
+      ctx.restore();
+    } else {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(sprite, col * fw, row * fh, fw, fh, e.x - fw / 2, e.y - fh / 2, fw, fh);
+      ctx.imageSmoothingEnabled = true;
+    }
     // HP bar
     var barW = 52, barH = 6;
     ctx.fillStyle = 'rgba(0,0,0,0.6)';

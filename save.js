@@ -18,7 +18,6 @@ var SaveManager = {
     maxHp:   { name: 'Живучесть', desc: 'Макс. HP +10%',   maxLevel: 5, costs: [50, 100, 200, 400, 800] },
     speed:   { name: 'Скорость',  desc: 'Скорость +5%',    maxLevel: 5, costs: [75, 150, 300, 600, 1200] },
     cooldown:{ name: 'Кулдаун',   desc: 'Перезарядка -3%', maxLevel: 5, costs: [100, 200, 400, 800, 1600] },
-    revive:  { name: 'Воскрешение', desc: '+1 жизнь',      maxLevel: 5, costs: [200, 500, 1000, 2000, 4000] },
   },
 
   load: function() {
@@ -73,7 +72,6 @@ var SaveManager = {
       case 'maxHp':    return 1 + level * 0.1;
       case 'speed':    return 1 + level * 0.05;
       case 'cooldown': return 1 - level * 0.03;
-      case 'revive':   return level;
     }
     return 0;
   },
@@ -84,7 +82,6 @@ var SaveManager = {
     Player.hp = Player.maxHp;
     Player.moveSpeed *= this.getBonus('speed');
     Player.cooldown *= this.getBonus('cooldown');
-    Player._revives = this.getBonus('revive');
   },
 
   getTotalCoinsEarned: function() {

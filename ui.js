@@ -420,7 +420,7 @@ const UI = {
     }
     const bm = Math.floor(SaveManager.data.bestTime / 60);
     const bs = Math.floor(SaveManager.data.bestTime % 60);
-    var hasAdRevive = typeof YandexSDK !== 'undefined' && YandexSDK.ready;
+    const hasAdRevive = typeof YandexSDK !== 'undefined';
     overlay.innerHTML = `<div class="gameover-title">GAME OVER</div>
       <div class="gameover-stats">
         <div>Survived: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}</div>
@@ -437,12 +437,17 @@ const UI = {
     overlay.style.display = 'flex';
     if (hasAdRevive) {
       document.getElementById('adReviveBtn').addEventListener('click', function() {
-        YandexSDK.showRewarded(function(success) {
-          if (success) {
-            overlay.style.display = 'none';
-            Player.adRevive();
-          }
-        });
+        if (YandexSDK.ready) {
+          YandexSDK.showRewarded(function(success) {
+            if (success) {
+              overlay.style.display = 'none';
+              Player.adRevive();
+            }
+          });
+        } else {
+          overlay.style.display = 'none';
+          Player.adRevive();
+        }
       });
     }
     document.getElementById('restartBtn').addEventListener('click', () => {

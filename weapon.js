@@ -197,7 +197,7 @@ WEAPON_FACTORIES.throwingKnife = function() {
     ],
     evoSynergy: 'SPEED', evoId: 'thousandEdge',
     attack: function() {
-      var range = 350 * Player.area;
+      var range = 200 * Player.area;
       var target = findClosestEnemy(Player.x, Player.y, range);
       if (!target) return;
       var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
@@ -402,14 +402,12 @@ WEAPON_FACTORIES.whip = function() {
     evoSynergy: 'MAXHEALTH', evoId: 'bloodyTear',
     attack: function() {
       var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
-      var range = 75 * Player.area;
+      var range = 300 * Player.area;
       var arcAngle = 1.2;
       var dir = Player.dir;
       var angle;
-      if (dir === 0) angle = -Math.PI / 2;
-      else if (dir === 1) angle = Math.PI;
-      else if (dir === 2) angle = 0;
-      else angle = Math.PI / 2;
+      if (dir === 1) angle = Math.PI;
+      else angle = 0;
       var amt = this.getStat('amount') + Player.amount;
       var hitAny = false;
       for (var ai = 0; ai < amt; ai++) {
@@ -547,7 +545,7 @@ WEAPON_FACTORIES.thousandEdge = function() {
     base: { power: 1.65, interval: 350, area: 1, speed: 1.5, amount: 6, penetrating: 3 },
     bonuses: [],
     attack: function() {
-      var range = 400 * Player.area;
+      var range = 250 * Player.area;
       var dmg = Math.ceil(10 * this.getStat('power') * Player.power) + WeaponManager.globalDamage;
       var amt = this.getStat('amount') + Player.amount;
       for (var ai = 0; ai < amt; ai++) {

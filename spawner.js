@@ -34,7 +34,7 @@ const Spawner = {
 
   reset() {
     this.elapsedTime = 0;
-    this.timer = 0;
+    this.timer = this.baseInterval;
     this.bossTimer = 0;
     this.rageMul = 1;
     this._lastWaveMinute = -1;
@@ -153,8 +153,8 @@ const Spawner = {
         const cam = Game.camera;
         const w = Game.width / Game.zoom;
         const h = Game.height / Game.zoom;
-        const margin = Math.max(w, h) * 0.6;
-        const spread = Math.max(w, h) * 0.4;
+        const margin = 0;
+        const spread = 48;
         if (side === 0) {
           x = cam.x + Math.random() * w;
           y = cam.y - margin - Math.random() * spread;
