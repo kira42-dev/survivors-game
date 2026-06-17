@@ -269,6 +269,7 @@ const Game = {
     Player.y = 1500;
     Player.coinsEarned = 0;
     Player._revives = 0;
+    Player._adRevives = 0;
     SaveManager.applyToPlayer();
     UI.reset();
     this.nukeIntensity = 0;

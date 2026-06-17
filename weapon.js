@@ -278,12 +278,13 @@ WEAPON_FACTORIES.lightning = function() {
       for (var c = 0; c < chains; c++) {
         var lx = Game.unwrap(last.x, Player.x);
         var ly = Game.unwrap(last.y, Player.y);
-        var next = findClosestEnemy(lx, ly, 100);
+        var next = findClosestEnemy(lx, ly, 200);
         if (next && chain.indexOf(next) === -1) { chain.push(next); last = next; }
         else break;
       }
       for (var ci = 0; ci < chain.length; ci++) {
         damageEnemy(chain[ci], Math.ceil(dmg * (ci === 0 ? 1 : 0.6)));
+
       }
       WeaponManager.addVfx({ type: 'lightning', points: chain, timer: 0, duration: 0.15 });
     },
@@ -306,7 +307,7 @@ WEAPON_FACTORIES.loop = function() {
       for (var c = 0; c < chains; c++) {
         var lx = Game.unwrap(last.x, Player.x);
         var ly = Game.unwrap(last.y, Player.y);
-        var next = findClosestEnemy(lx, ly, 120);
+        var next = findClosestEnemy(lx, ly, 220);
         if (next && chain.indexOf(next) === -1) { chain.push(next); last = next; }
         else break;
       }

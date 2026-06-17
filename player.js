@@ -160,6 +160,8 @@ const Player = {
   },
 
   adRevive() {
+    if (this._adRevives >= 2) return;
+    this._adRevives++;
     this.dead = false;
     this.hp = Math.ceil(this.maxHp / 2);
     this.invuln = true;
