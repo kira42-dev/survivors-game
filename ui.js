@@ -9,6 +9,44 @@ const UI = {
     this.messageTimer = duration || 2;
   },
 
+  showChestBonus() {
+    const overlay = document.getElementById('upgradeOverlay');
+    if (!overlay) return;
+    overlay.innerHTML = `<div class="upgrade-title">СУНДУК</div>
+      <div style="color:#aaa;margin-bottom:20px;font-size:16px;">+1 уровень бесплатно и бонус за рекламу</div>
+      <button class="restart-btn" id="chestAdBtn" style="background:#2a6;border-color:#4f8;">+5 МОНЕТ (реклама)</button>
+      <button class="restart-btn" id="chestSkipBtn">ЗАБРАТЬ</button>`;
+    overlay.style.display = 'flex';
+    document.getElementById('chestAdBtn').addEventListener('click', () => {
+      if (typeof Audio !== 'undefined') Audio.play('click');
+      if (typeof YandexSDK !== 'undefined' && YandexSDK.ready) {
+        YandexSDK.showRewarded(function(success) {
+          if (success) {
+            Player.coinsEarned = (Player.coinsEarned || 0) + 5;
+            UI.showMessage('+5 монет!', 2);
+          }
+          UI._applyChestLevel();
+        });
+      } else {
+        Player.coinsEarned = (Player.coinsEarned || 0) + 5;
+        UI.showMessage('+5 монет!', 2);
+        UI._applyChestLevel();
+      }
+    });
+    document.getElementById('chestSkipBtn').addEventListener('click', () => {
+      if (typeof Audio !== 'undefined') Audio.play('click');
+      UI._applyChestLevel();
+    });
+  },
+
+  _applyChestLevel() {
+    document.getElementById('upgradeOverlay').style.display = 'none';
+    Player.chestBonusPending = false;
+    var needed = Math.ceil(Player.xpToNext * (1 - Player.xpDiscount));
+    Player.xp = needed;
+    Player.addXp(0);
+  },
+
   reset() {
     this.gameTime = 0;
     this.statsCache = null;
@@ -23,6 +61,7 @@ const UI = {
     this.drawStats(ctx);
     this.drawEquipment(ctx);
     this.drawMinimap(ctx);
+    this.updateXpBoostBtn();
     if (this.message) {
       ctx.save();
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -230,6 +269,53 @@ const UI = {
     ctx.restore();
   },
 
+  createXpBoostBtn() {
+    if (document.getElementById('xpBoostBtn')) return;
+    var btn = document.createElement('div');
+    btn.id = 'xpBoostBtn';
+    btn.textContent = 'XP×2';
+    var activating = false;
+    btn.addEventListener('click', function() {
+      if (Game.state !== 'PLAYING') return;
+      if (Player.xpBoost > 0) return;
+      if (activating) return;
+      activating = true;
+      if (typeof Audio !== 'undefined') Audio.play('click');
+      var doBoost = function() {
+        Player.xpBoost = 30;
+        UI.showMessage('XP×2 на 30с!', 2);
+        activating = false;
+      };
+      if (typeof YandexSDK !== 'undefined' && YandexSDK.ready) {
+        YandexSDK.showRewarded(function(success) {
+          if (success) doBoost();
+          else activating = false;
+        });
+      } else {
+        doBoost();
+        activating = false;
+      }
+    });
+    document.body.appendChild(btn);
+  },
+
+  updateXpBoostBtn() {
+    var btn = document.getElementById('xpBoostBtn');
+    if (!btn) return;
+    if (Game.state === 'PLAYING' && typeof YandexSDK !== 'undefined') {
+      btn.style.display = 'block';
+      if (Player.xpBoost > 0) {
+        btn.textContent = 'XP×2 ' + Math.ceil(Player.xpBoost) + 'с';
+        btn.style.background = 'rgba(0,150,80,0.85)';
+      } else {
+        btn.textContent = 'XP×2';
+        btn.style.background = 'rgba(255,255,255,0.12)';
+      }
+    } else {
+      btn.style.display = 'none';
+    }
+  },
+
   _weaponSpriteTag(spriteKey) {
     if (!spriteKey) return '';
     var path = Game.spritePaths && Game.spritePaths[spriteKey];
@@ -410,7 +496,6 @@ const UI = {
     var menu = document.getElementById('menuMusic');
     if (menu) { menu.currentTime = 0; menu.play(); }
     var coins = Player.coinsEarned || 0;
-    if (coins > 0) SaveManager.addCoins(coins);
     const mins = Math.floor(this.gameTime / 60);
     const secs = Math.floor(this.gameTime % 60);
     const curTime = this.gameTime;
@@ -420,37 +505,65 @@ const UI = {
     }
     const bm = Math.floor(SaveManager.data.bestTime / 60);
     const bs = Math.floor(SaveManager.data.bestTime % 60);
-    const hasAdRevive = typeof YandexSDK !== 'undefined';
+    const hasAd = typeof YandexSDK !== 'undefined';
+    var _coinsClaimed = false;
     overlay.innerHTML = `<div class="gameover-title">GAME OVER</div>
       <div class="gameover-stats">
         <div>Survived: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}</div>
         <div style="color:#ffa500;">Best: ${String(bm).padStart(2, '0')}:${String(bs).padStart(2, '0')}</div>
         <div>Kills: ${Player.kills}</div>
         <div>Level: ${Player.level}</div>
-        <div style="color:#ffe040;margin-top:8px;">Монет заработано: ${coins}</div>
+        <div style="color:#ffe040;margin-top:8px;" id="coinDisplay">Монет заработано: ${coins}</div>
         <div style="color:#8f8;font-size:14px;">Всего монет: ${SaveManager.data.coins}</div>
       </div>
-      ${hasAdRevive ? '<button class="restart-btn" id="adReviveBtn" style="background:#2a6;border-color:#4f8;">ВОСКРЕСНУТЬ (реклама)</button>' : ''}
+      ${hasAd && coins > 0 ? '<button class="restart-btn" id="doubleCoinBtn" style="background:#b08020;border-color:#ffe040;">×2 МОНЕТ (реклама)</button>' : ''}
+      ${hasAd ? '<button class="restart-btn" id="adReviveBtn" style="background:#2a6;border-color:#4f8;">ВОСКРЕСНУТЬ (реклама)</button>' : ''}
       <button class="restart-btn" id="restartBtn">ЕЩЁ РАЗ</button>
       <button class="restart-btn menu-btn" id="upgradeBtn" style="margin-top:10px;background:#b08020;border-color:#ffe040;">УЛУЧШЕНИЯ</button>
       <button class="restart-btn menu-btn" id="menuBtn" style="margin-top:10px;background:#333;border-color:#666;">ГЛАВНОЕ МЕНЮ</button>`;
     overlay.style.display = 'flex';
-    if (hasAdRevive) {
-      document.getElementById('adReviveBtn').addEventListener('click', function() {
+    var claim = function(mul) {
+      if (_coinsClaimed) return;
+      _coinsClaimed = true;
+      if (coins > 0) SaveManager.addCoins(coins * mul);
+    };
+    if (hasAd && coins > 0) {
+      document.getElementById('doubleCoinBtn').addEventListener('click', function() {
+        if (typeof Audio !== 'undefined') Audio.play('click');
+        var doDouble = function() {
+          claim(2);
+          var cd = document.getElementById('coinDisplay');
+          if (cd) cd.innerHTML = 'Монет заработано: ' + coins + ' ×2';
+          document.getElementById('doubleCoinBtn').disabled = true;
+          document.getElementById('doubleCoinBtn').style.opacity = '0.5';
+        };
         if (YandexSDK.ready) {
           YandexSDK.showRewarded(function(success) {
-            if (success) {
-              overlay.style.display = 'none';
-              Player.adRevive();
-            }
+            if (success) doDouble();
           });
         } else {
+          doDouble();
+        }
+      });
+    }
+    if (hasAd) {
+      document.getElementById('adReviveBtn').addEventListener('click', function() {
+        if (typeof Audio !== 'undefined') Audio.play('click');
+        var doRevive = function() {
           overlay.style.display = 'none';
           Player.adRevive();
+        };
+        if (YandexSDK.ready) {
+          YandexSDK.showRewarded(function(success) {
+            if (success) doRevive();
+          });
+        } else {
+          doRevive();
         }
       });
     }
     document.getElementById('restartBtn').addEventListener('click', () => {
+      claim(1);
       overlay.style.display = 'none';
       Game.reset();
     });
@@ -458,6 +571,7 @@ const UI = {
       SaveManager.openMenu();
     });
     document.getElementById('menuBtn').addEventListener('click', () => {
+      claim(1);
       overlay.style.display = 'none';
       document.getElementById('mainMenu').style.display = 'flex';
     });

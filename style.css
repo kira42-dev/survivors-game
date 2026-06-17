@@ -19,6 +19,28 @@ canvas {
   touch-action: none;
 }
 
+#xpBoostBtn {
+  position: fixed;
+  top: 76px;
+  left: 16px;
+  width: 90px;
+  height: 28px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font: 12px monospace;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  z-index: 50;
+  transition: background 0.2s;
+}
+#xpBoostBtn:hover {
+  background: rgba(255,255,255,0.2) !important;
+}
+
 #upgradeOverlay {
   display: none;
   position: fixed;

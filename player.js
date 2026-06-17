@@ -23,6 +23,8 @@ const Player = {
   regen: 0,
   vampChance: 0,
   invuln: false,
+  xpBoost: 0,
+  chestBonusPending: false,
   animFrame: 0,
   animTimer: 0,
   moving: false,
@@ -124,6 +126,7 @@ const Player = {
   },
 
   addXp(amount) {
+    if (this.xpBoost > 0 && amount > 0) amount *= 2;
     var needed = Math.ceil(this.xpToNext * (1 - this.xpDiscount));
     this.xp += amount;
     if (this.xp >= needed) {

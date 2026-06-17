@@ -409,8 +409,13 @@ const Enemy = {
       if (cdx * cdx + cdy * cdy < 30 * 30) {
         ch.alive = false;
         if (typeof Audio !== 'undefined') Audio.play('levelUp');
-        Game.state = 'LEVELING';
-        UI.showUpgrades();
+        if (typeof YandexSDK !== 'undefined') {
+          Player.chestBonusPending = true;
+          UI.showChestBonus();
+        } else {
+          Game.state = 'LEVELING';
+          UI.showUpgrades();
+        }
       }
     }
     var cw2 = 0;

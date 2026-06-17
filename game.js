@@ -84,6 +84,7 @@ const Game = {
     this.ctx = this.canvas.getContext('2d');
     this.resize();
     window.addEventListener('resize', () => this.resize());
+    UI.createXpBoostBtn();
   },
 
   resize() {
@@ -270,6 +271,8 @@ const Game = {
     Player.coinsEarned = 0;
     Player._revives = 0;
     Player._adRevives = 0;
+    Player.xpBoost = 0;
+    Player.chestBonusPending = false;
     SaveManager.applyToPlayer();
     UI.reset();
     this.nukeIntensity = 0;
@@ -315,6 +318,7 @@ const Game = {
     WeaponManager.update(dt);
     UI.gameTime += dt;
     if (UI.message) { UI.messageTimer -= dt; if (UI.messageTimer <= 0) { UI.message = null; } }
+    if (Player.xpBoost > 0) Player.xpBoost -= dt;
 
     // Nuke visual tick
     if (this.nukeIntensity > 0) this.nukeIntensity -= dt / 0.4;
