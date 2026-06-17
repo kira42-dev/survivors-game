@@ -76,8 +76,8 @@ const Player = {
         this.animTimer = 0;
       }
     }
-    Game.camera.x = this.x - Game.width / 2;
-    Game.camera.y = this.y - Game.height / 2;
+    Game.camera.x = this.x - (Game.width / Game.zoom) / 2;
+    Game.camera.y = this.y - (Game.height / Game.zoom) / 2;
   },
 
   render(ctx) {

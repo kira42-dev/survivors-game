@@ -15,6 +15,7 @@ const Game = {
   shakeTimer: 0,
   shakeIntensity: 20,
   rageTimer: 0,
+  zoom: 2,
   loadedAssets: 0,
   totalAssets: 0,
 
@@ -210,8 +211,8 @@ const Game = {
   start() {
     if (this.state === 'LOADING') return;
     this.reset();
-    this.camera.x = Player.x - this.width / 2;
-    this.camera.y = Player.y - this.height / 2;
+    this.camera.x = Player.x - (this.width / this.zoom) / 2;
+    this.camera.y = Player.y - (this.height / this.zoom) / 2;
     this.generateDecorations();
     this.lastTime = performance.now();
     if (!this._started) {
@@ -393,6 +394,7 @@ const Game = {
       );
     }
     ctx.translate(-this.camera.x, -this.camera.y);
+    ctx.scale(this.zoom, this.zoom);
     this.renderMap(ctx);
     Enemy.renderAll(ctx);
     WeaponManager.render(ctx);
@@ -442,8 +444,8 @@ const Game = {
         const buffer = ts * 3; // Render 3 tiles beyond visible area
         const sx = Math.floor((this.camera.x - buffer) / ts) * ts;
         const sy = Math.floor((this.camera.y - buffer) / ts) * ts;
-        const ex = this.camera.x + this.width + buffer + ts;
-        const ey = this.camera.y + this.height + buffer + ts;
+        const ex = this.camera.x + this.width / this.zoom + buffer + ts;
+        const ey = this.camera.y + this.height / this.zoom + buffer + ts;
 
     for (let y = sy; y < ey; y += ts) {
       for (let x = sx; x < ex; x += ts) {
@@ -458,8 +460,8 @@ const Game = {
 
     var cx = this.camera.x;
     var cy = this.camera.y;
-    var cw = this.width;
-    var ch = this.height;
+    var cw = this.width / this.zoom;
+    var ch = this.height / this.zoom;
     var cex = cx + cw / 2;
     var cey = cy + ch / 2;
     for (var i = 0; i < this.decorations.length; i++) {

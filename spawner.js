@@ -148,8 +148,8 @@ const Spawner = {
       do {
         const side = Math.floor(Math.random() * 4);
         const cam = Game.camera;
-        const w = Game.width;
-        const h = Game.height;
+        const w = Game.width / Game.zoom;
+        const h = Game.height / Game.zoom;
         const margin = Math.max(w, h) * 0.6;
         const spread = Math.max(w, h) * 0.4;
         if (side === 0) {

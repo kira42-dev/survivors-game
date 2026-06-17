@@ -66,8 +66,8 @@ var WEAPON_SPRITE_MAP = {
 function getSpawnPos() {
   var side = Math.floor(Math.random() * 4);
   var cam = Game.camera;
-  var w = Game.width;
-  var h = Game.height;
+  var w = Game.width / Game.zoom;
+  var h = Game.height / Game.zoom;
   var margin = Math.max(w, h) * 0.6;
   var spread = Math.max(w, h) * 0.4;
   var x, y;
