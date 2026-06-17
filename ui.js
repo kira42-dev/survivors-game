@@ -12,10 +12,12 @@ const UI = {
   showChestBonus() {
     const overlay = document.getElementById('upgradeOverlay');
     if (!overlay) return;
-    overlay.innerHTML = `<div class="upgrade-title">СУНДУК</div>
-      <div style="color:#aaa;margin-bottom:20px;font-size:16px;">+1 уровень бесплатно и бонус за рекламу</div>
-      <button class="restart-btn" id="chestAdBtn" style="background:#2a6;border-color:#4f8;">+5 МОНЕТ (реклама)</button>
-      <button class="restart-btn" id="chestSkipBtn">ЗАБРАТЬ</button>`;
+    overlay.innerHTML = `<div class="chest-title">СУНДУК</div>
+      <div class="chest-sub">+1 уровень и бонус за рекламу</div>
+      <div class="btn-group">
+        <button class="restart-btn btn-gold" id="chestAdBtn">+5 МОНЕТ (реклама)</button>
+        <button class="restart-btn" id="chestSkipBtn">ЗАБРАТЬ</button>
+      </div>`;
     overlay.style.display = 'flex';
     document.getElementById('chestAdBtn').addEventListener('click', () => {
       if (typeof Audio !== 'undefined') Audio.play('click');
@@ -306,10 +308,10 @@ const UI = {
       btn.style.display = 'block';
       if (Player.xpBoost > 0) {
         btn.textContent = 'XP×2 ' + Math.ceil(Player.xpBoost) + 'с';
-        btn.style.background = 'rgba(0,150,80,0.85)';
+        btn.className = 'active';
       } else {
         btn.textContent = 'XP×2';
-        btn.style.background = 'rgba(255,255,255,0.12)';
+        btn.className = '';
       }
     } else {
       btn.style.display = 'none';
@@ -334,7 +336,7 @@ const UI = {
     if (!choices || choices.length === 0) {
       overlay.innerHTML = `<div class="upgrade-title">УРОВЕНЬ ${Player.level}</div>
         <div style="color:#aaa;margin-bottom:20px;">Все улучшения максимальны</div>
-        <button class="restart-btn" id="continueBtn">ПРОДОЛЖИТЬ</button>`;
+        <div class="btn-group"><button class="restart-btn" id="continueBtn">ПРОДОЛЖИТЬ</button></div>`;
       overlay.style.display = 'flex';
       document.getElementById('continueBtn').addEventListener('click', () => {
         if (typeof Audio !== 'undefined') Audio.play('click');
@@ -509,18 +511,20 @@ const UI = {
     var _coinsClaimed = false;
     overlay.innerHTML = `<div class="gameover-title">GAME OVER</div>
       <div class="gameover-stats">
-        <div>Survived: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}</div>
-        <div style="color:#ffa500;">Best: ${String(bm).padStart(2, '0')}:${String(bs).padStart(2, '0')}</div>
-        <div>Kills: ${Player.kills}</div>
-        <div>Level: ${Player.level}</div>
-        <div style="color:#ffe040;margin-top:8px;" id="coinDisplay">Монет заработано: ${coins}</div>
-        <div style="color:#8f8;font-size:14px;">Всего монет: ${SaveManager.data.coins}</div>
+        <div>Выжил: <span class="stat-value">${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}</span></div>
+        <div>Рекорд: <span class="stat-time">${String(bm).padStart(2, '0')}:${String(bs).padStart(2, '0')}</span></div>
+        <div>Убито: <span class="stat-value">${Player.kills}</span></div>
+        <div>Уровень: <span class="stat-value">${Player.level}</span></div>
+        <div style="margin-top:10px;" id="coinDisplay">Монет: <span class="stat-coins">${coins}</span></div>
+        <div style="color:#666;font-size:13px;">Всего: ${SaveManager.data.coins}</div>
       </div>
-      ${hasAd && coins > 0 ? '<button class="restart-btn" id="doubleCoinBtn" style="background:#b08020;border-color:#ffe040;">×2 МОНЕТ (реклама)</button>' : ''}
-      ${hasAd ? '<button class="restart-btn" id="adReviveBtn" style="background:#2a6;border-color:#4f8;">ВОСКРЕСНУТЬ (реклама)</button>' : ''}
-      <button class="restart-btn" id="restartBtn">ЕЩЁ РАЗ</button>
-      <button class="restart-btn menu-btn" id="upgradeBtn" style="margin-top:10px;background:#b08020;border-color:#ffe040;">УЛУЧШЕНИЯ</button>
-      <button class="restart-btn menu-btn" id="menuBtn" style="margin-top:10px;background:#333;border-color:#666;">ГЛАВНОЕ МЕНЮ</button>`;
+      <div class="btn-group">
+        ${hasAd && coins > 0 ? '<button class="restart-btn btn-gold" id="doubleCoinBtn">×2 МОНЕТ (реклама)</button>' : ''}
+        ${hasAd ? '<button class="restart-btn btn-green" id="adReviveBtn">ВОСКРЕСНУТЬ (реклама)</button>' : ''}
+        <button class="restart-btn" id="restartBtn">ЕЩЁ РАЗ</button>
+        <button class="restart-btn menu-btn" id="upgradeBtn">УЛУЧШЕНИЯ</button>
+        <button class="restart-btn menu-btn" id="menuBtn">ГЛАВНОЕ МЕНЮ</button>
+      </div>`;
     overlay.style.display = 'flex';
     var claim = function(mul) {
       if (_coinsClaimed) return;
@@ -533,7 +537,7 @@ const UI = {
         var doDouble = function() {
           claim(2);
           var cd = document.getElementById('coinDisplay');
-          if (cd) cd.innerHTML = 'Монет заработано: ' + coins + ' ×2';
+          if (cd) cd.innerHTML = 'Монет: <span class="stat-coins">' + (coins * 2) + '</span> ×2';
           document.getElementById('doubleCoinBtn').disabled = true;
           document.getElementById('doubleCoinBtn').style.opacity = '0.5';
         };

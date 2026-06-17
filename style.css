@@ -23,22 +23,44 @@ canvas {
   position: fixed;
   top: 76px;
   left: 16px;
-  width: 90px;
-  height: 28px;
+  width: 96px;
+  height: 30px;
   display: none;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font: 12px monospace;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 4px;
+  color: #ffe060;
+  font: bold 13px monospace;
+  letter-spacing: 0.5px;
+  background: rgba(255,200,50,0.08);
+  border: 1px solid rgba(255,200,50,0.25);
+  border-radius: 6px;
   cursor: pointer;
   user-select: none;
   z-index: 50;
-  transition: background 0.2s;
+  transition: all 0.25s;
+  text-shadow: 0 0 8px rgba(255,200,50,0.15);
 }
 #xpBoostBtn:hover {
-  background: rgba(255,255,255,0.2) !important;
+  background: rgba(255,200,50,0.18) !important;
+  border-color: rgba(255,200,50,0.5);
+  box-shadow: 0 0 16px rgba(255,200,50,0.12);
+}
+#xpBoostBtn:active {
+  transform: scale(0.95);
+}
+#xpBoostBtn.active {
+  color: #8f8;
+  background: rgba(0,180,80,0.25) !important;
+  border-color: rgba(0,220,100,0.45);
+  box-shadow: 0 0 20px rgba(0,220,100,0.2);
+  animation: xpPulse 1s ease-in-out infinite;
+}
+#xpBoostBtn.active:hover {
+  background: rgba(0,180,80,0.35) !important;
+}
+@keyframes xpPulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(0,220,100,0.2); }
+  50% { box-shadow: 0 0 25px rgba(0,220,100,0.4); }
 }
 
 #upgradeOverlay {
@@ -47,20 +69,51 @@ canvas {
   top: 0; left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.75);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.88) 100%);
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 10;
   color: #fff;
+  animation: fadeIn 0.2s ease;
 }
+#upgradeOverlay .btn-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 #upgradeOverlay .upgrade-title {
   font-size: 28px;
   font-weight: bold;
   margin-bottom: 30px;
   color: #ffe040;
-  text-shadow: 0 0 10px rgba(255,224,64,0.5);
+  text-shadow: 0 0 20px rgba(255,224,64,0.4), 0 0 40px rgba(255,224,64,0.1);
+  letter-spacing: 2px;
+}
+
+#upgradeOverlay .chest-title {
+  font-size: 40px;
+  color: #ffd700;
+  text-shadow: 0 0 40px rgba(255,215,0,0.5), 0 0 80px rgba(255,215,0,0.2);
+  letter-spacing: 6px;
+  margin-bottom: 12px;
+  animation: chestGlow 2s ease-in-out infinite;
+}
+@keyframes chestGlow {
+  0%, 100% { text-shadow: 0 0 40px rgba(255,215,0,0.5), 0 0 80px rgba(255,215,0,0.2); }
+  50% { text-shadow: 0 0 60px rgba(255,215,0,0.7), 0 0 100px rgba(255,215,0,0.3); }
+}
+
+#upgradeOverlay .chest-sub {
+  color: #c0a060;
+  font-size: 16px;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
 }
 
 #upgradeOverlay .upgrade-choices {
@@ -71,14 +124,15 @@ canvas {
 }
 
 #upgradeOverlay .upgrade-card {
-  background: rgba(40,30,60,0.9);
-  border: 2px solid rgba(255,224,64,0.3);
-  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(50,35,70,0.95), rgba(35,25,55,0.95));
+  border: 2px solid rgba(255,224,64,0.25);
+  border-radius: 12px;
   padding: 20px 25px;
   width: 180px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -116,14 +170,20 @@ canvas {
 }
 
 #upgradeOverlay .upgrade-card:hover {
-  background: rgba(60,40,80,0.9);
+  background: linear-gradient(180deg, rgba(70,50,90,0.95), rgba(50,35,70,0.95));
   border-color: #ffe040;
-  transform: scale(1.05);
+  transform: scale(1.06);
+  box-shadow: 0 6px 30px rgba(255,224,64,0.1);
+}
+
+#upgradeOverlay .upgrade-card:active {
+  transform: scale(0.97);
 }
 
 #upgradeOverlay .upgrade-icon {
   font-size: 32px;
   margin-bottom: 8px;
+  filter: drop-shadow(0 0 6px rgba(255,224,64,0.15));
 }
 
 #upgradeOverlay .upgrade-weapon-img {
@@ -138,42 +198,101 @@ canvas {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 6px;
+  letter-spacing: 0.5px;
 }
 
 #upgradeOverlay .upgrade-desc {
   font-size: 12px;
-  color: #aaa;
+  color: #bbb;
+  line-height: 1.4;
 }
 
 #upgradeOverlay .gameover-title {
-  font-size: 48px;
+  font-size: 52px;
   font-weight: bold;
   color: #ff4040;
-  text-shadow: 0 0 20px rgba(255,64,64,0.5);
+  text-shadow: 0 0 30px rgba(255,64,64,0.5), 0 0 60px rgba(255,64,64,0.2);
   margin-bottom: 20px;
+  letter-spacing: 4px;
 }
 
 #upgradeOverlay .gameover-stats {
   font-size: 18px;
-  line-height: 1.8;
+  line-height: 2;
   margin-bottom: 30px;
   text-align: center;
+  color: #ddd;
+}
+#upgradeOverlay .gameover-stats .stat-value {
+  color: #fff;
+  font-weight: bold;
+}
+#upgradeOverlay .gameover-stats .stat-coins {
+  color: #ffe040;
+  font-weight: bold;
+  font-size: 24px;
+}
+#upgradeOverlay .gameover-stats .stat-time {
+  color: #8cf;
 }
 
 .restart-btn {
-  background: #c03030;
   color: #fff;
-  border: none;
+  border: 2px solid rgba(255,255,255,0.3);
   border-radius: 8px;
   padding: 14px 40px;
   font-size: 20px;
   font-family: monospace;
+  font-weight: bold;
+  letter-spacing: 2px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.25s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  background: linear-gradient(180deg, #c03535, #a02020);
+  border-color: rgba(255,100,100,0.3);
+}
+.restart-btn:hover {
+  background: linear-gradient(180deg, #d54545, #b03030);
+  transform: scale(1.04);
+  box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+}
+.restart-btn:active {
+  transform: scale(0.96);
 }
 
-.restart-btn:hover {
-  background: #e04040;
+.restart-btn.btn-green {
+  background: linear-gradient(180deg, #2a8a40, #1e7030);
+  border-color: rgba(80,220,100,0.3);
+}
+.restart-btn.btn-green:hover {
+  background: linear-gradient(180deg, #35a050, #28803a);
+}
+
+.restart-btn.btn-gold {
+  background: linear-gradient(180deg, #c89720, #a07810);
+  border-color: rgba(255,200,50,0.4);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  animation: goldPulse 2s ease-in-out infinite;
+}
+.restart-btn.btn-gold:hover {
+  background: linear-gradient(180deg, #d8a730, #b08820);
+  animation: none;
+}
+
+@keyframes goldPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255,200,50,0.15); }
+  50% { box-shadow: 0 0 20px rgba(255,200,50,0.35); }
+}
+
+.restart-btn.menu-btn {
+  background: linear-gradient(180deg, #3a3a40, #2a2a30);
+  border-color: rgba(255,255,255,0.15);
+  font-size: 17px;
+  padding: 12px 36px;
+}
+.restart-btn.menu-btn:hover {
+  background: linear-gradient(180deg, #4a4a50, #3a3a40);
 }
 
 /* ===== Loading Screen ===== */
