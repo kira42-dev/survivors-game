@@ -136,7 +136,6 @@ const Player = {
       else if (this.level === 3) this.xpToNext = 30;
       else if (this.level === 4) this.xpToNext = 60;
       else if (this.level >= 5) this.xpToNext = Math.ceil(this.xpToNext * 1.2);
-      Enemy.xpGems.forEach(function(g) { if (g.alive) g._magnet = true; });
       Game.state = 'LEVELING';
       UI.showUpgrades();
       if (typeof Audio !== 'undefined') Audio.play('levelUp');
