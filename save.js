@@ -3,6 +3,7 @@ var SaveManager = {
 
   data: {
     coins: 0,
+    bestTime: 0,
     upgrades: {
       damage: 0,
       maxHp: 0,
@@ -31,6 +32,7 @@ var SaveManager = {
           }
         }
         this.data.coins = parsed.coins || 0;
+        this.data.bestTime = parsed.bestTime || 0;
       }
     } catch (e) {}
   },

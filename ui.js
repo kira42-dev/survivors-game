@@ -203,6 +203,22 @@ const UI = {
       ctx.fillRect(cx - 1.5, cy - 1.5, 3, 3);
     }
 
+    for (var chi = 0; chi < Enemy.chestItems.length; chi++) {
+      var ch = Enemy.chestItems[chi];
+      if (!ch.alive) continue;
+      var ux = Game.unwrap(ch.x, Player.x);
+      var uy = Game.unwrap(ch.y, Player.y);
+      var dx = ux - Player.x;
+      var dy = uy - Player.y;
+      if (Math.abs(dx) > worldView || Math.abs(dy) > worldView) continue;
+      var chx = center + dx * scale;
+      var chy = center + dy * scale;
+      ctx.fillStyle = '#a64';
+      ctx.fillRect(chx - 2, chy - 2, 4, 4);
+      ctx.fillStyle = '#fd0';
+      ctx.fillRect(chx - 1, chy - 1, 2, 2);
+    }
+
     ctx.fillStyle = '#4f4';
     ctx.beginPath();
     ctx.arc(center, center, 3, 0, Math.PI * 2);
@@ -397,10 +413,18 @@ const UI = {
     if (coins > 0) SaveManager.addCoins(coins);
     const mins = Math.floor(this.gameTime / 60);
     const secs = Math.floor(this.gameTime % 60);
+    const curTime = this.gameTime;
+    if (curTime > SaveManager.data.bestTime) {
+      SaveManager.data.bestTime = curTime;
+      SaveManager.save();
+    }
+    const bm = Math.floor(SaveManager.data.bestTime / 60);
+    const bs = Math.floor(SaveManager.data.bestTime % 60);
     var hasAdRevive = typeof YandexSDK !== 'undefined' && YandexSDK.ready;
     overlay.innerHTML = `<div class="gameover-title">GAME OVER</div>
       <div class="gameover-stats">
         <div>Survived: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}</div>
+        <div style="color:#ffa500;">Best: ${String(bm).padStart(2, '0')}:${String(bs).padStart(2, '0')}</div>
         <div>Kills: ${Player.kills}</div>
         <div>Level: ${Player.level}</div>
         <div style="color:#ffe040;margin-top:8px;">Монет заработано: ${coins}</div>

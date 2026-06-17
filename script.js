@@ -21,18 +21,26 @@ function checkLoading() {
 
 function togglePause() {
   var menu = document.getElementById('pauseMenu');
+  var gp = document.getElementById('gameplayMusic');
+  var rage = document.getElementById('rageMusic');
   if (Game.state === 'PLAYING') {
     Game.state = 'PAUSED';
     menu.style.display = 'flex';
+    if (gp && !gp.paused) gp.pause();
+    if (rage && !rage.paused) rage.pause();
   } else if (Game.state === 'PAUSED') {
     Game.state = 'PLAYING';
     menu.style.display = 'none';
+    if (rage && rage.currentTime > 0) rage.play();
+    else if (gp && gp.paused) gp.play();
   }
 }
 
 function quitToMenu() {
   var menu = document.getElementById('pauseMenu');
   menu.style.display = 'none';
+  if (Player.coinsEarned > 0) SaveManager.addCoins(Player.coinsEarned);
+  Player.coinsEarned = 0;
   Player.hp = 0;
   Player.dead = true;
   Game.state = 'GAME_OVER';

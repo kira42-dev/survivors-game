@@ -69,7 +69,7 @@ const Spawner = {
       this._lastWaveMinute = currentMinute;
       var typeName = this.getEnemyType(this.elapsedTime) === 'slime' ? 'Слаймы' : 'Летучие мыши';
       var phase = currentMinute % 3;
-      var waveName = phase === 0 ? 'СЛАЙМЫ' : phase === 1 ? 'СМЕШАННАЯ ВОЛНА' : 'ЛЕТУЧИЕ МЫШИ';
+      var waveName = phase === 0 ? 'СЛАЙМЫ' : phase === 1 ? 'СМЕШАННАЯ ВОЛНА' : 'БОМБЕРЫ';
       UI.showMessage('Волна ' + (currentMinute + 1) + ': ' + waveName, 2.5);
 
       // Milestone events
