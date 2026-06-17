@@ -439,7 +439,7 @@ const Game = {
         if (!grass || grass.width === 0) return;
         const ts = this.GRASS_TS;
         const gCols = this.GRASS_COLS;
-        // Increased buffer to prevent visible world loading
+        ctx.imageSmoothingEnabled = false;
         const buffer = ts * 3; // Render 3 tiles beyond visible area
         const sx = Math.floor((this.camera.x - buffer) / ts) * ts;
         const sy = Math.floor((this.camera.y - buffer) / ts) * ts;
@@ -453,7 +453,7 @@ const Game = {
         var h = this.hash(tileX, tileY);
         var gx = (h % gCols) * ts;
         var gy = (Math.floor(h / gCols) % this.GRASS_ROWS) * ts;
-        ctx.drawImage(grass, gx, gy, ts, ts, x, y, ts, ts);
+        ctx.drawImage(grass, gx, gy, ts, ts, Math.floor(x), Math.floor(y), ts + 1, ts + 1);
       }
     }
 
