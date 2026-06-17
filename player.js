@@ -78,6 +78,7 @@ const Player = {
     }
     Game.camera.x = this.x - (Game.width / Game.zoom) / 2;
     Game.camera.y = this.y - (Game.height / Game.zoom) / 2;
+    if (!this._logged) { this._logged = true; console.log('zoom:', Game.zoom, 'cam:', Game.camera.x, Game.camera.y, 'player:', this.x, this.y); }
   },
 
   render(ctx) {
