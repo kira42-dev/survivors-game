@@ -73,6 +73,7 @@ canvas {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   z-index: 10;
   color: #fff;
   animation: fadeIn 0.2s ease;
@@ -81,8 +82,7 @@ canvas {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 14px;
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -219,7 +219,6 @@ canvas {
 #upgradeOverlay .gameover-stats {
   font-size: 18px;
   line-height: 2;
-  margin-bottom: 30px;
   text-align: center;
   color: #ddd;
 }
